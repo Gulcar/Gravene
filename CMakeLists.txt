@@ -6,6 +6,7 @@ project(Gravene)
 add_executable(${PROJECT_NAME}
 	src/Main.cpp
 	deps/glad-4.3/src/glad.c
+	deps/stb_image/stb_image.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -14,6 +15,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	deps/glad-4.3/include
 	deps/glm-0.9.9.8/
 	deps/asio-1.24.0/include
+	deps/stb_image/
 )
 
 target_link_directories(${PROJECT_NAME} PRIVATE
