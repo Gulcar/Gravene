@@ -13,6 +13,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	deps/glfw-3.3.8/include/
 	deps/glad-4.3/include
 	deps/glm-0.9.9.8/
+	deps/asio-1.24.0/include
 )
 
 target_link_directories(${PROJECT_NAME} PRIVATE
