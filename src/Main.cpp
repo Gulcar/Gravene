@@ -24,6 +24,8 @@ int main()
 
 	Renderer::Init();
 
+	uint32_t amogusImage = Renderer::LoadTexture("resources/amogus.png");
+
 	while (!glfwWindowShouldClose(Renderer::GetWindow()))
 	{
 		glfwPollEvents();
@@ -34,8 +36,11 @@ int main()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		Renderer::Draw(amogusImage, { 0, 0 }, { 10, 5 });
+
 		glfwSwapBuffers(Renderer::GetWindow());
 	}
 
+	Renderer::Destroy();
 	glfwTerminate();
 }

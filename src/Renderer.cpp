@@ -5,6 +5,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <stb_image.h>
+
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_projection.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 static const char* vertexShaderSource = R"(
 #version 430 core
 
@@ -46,6 +52,8 @@ static void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 
 void Renderer::Init()
 {
+	fmt::print("Renderer::Init\n");
+
 	if (!glfwInit())
 		fmt::print(fg(fmt::color::red), "Failed to init glfw!\n");
 
@@ -63,22 +71,120 @@ void Renderer::Init()
 	glfwSetFramebufferSizeCallback(m_window, FramebufferSizeCallback);
 	glViewport(0, 0, 1280, 720);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	m_defaultShader = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
+
+	CreateRectBuffers();
+
+	stbi_set_flip_vertically_on_load(true);
 }
 
-uint32_t Renderer::LoadImage(std::string_view filename)
+uint32_t Renderer::LoadTexture(const std::string& filename, int* outWidth, int* outHeight)
 {
-	return -1;
+	if (m_loadedTextures.find(filename) != m_loadedTextures.end())
+	{
+		fmt::print("Returned cached texture: {}\n", filename);
+		return m_loadedTextures[filename];
+	}
+
+	int width, height, numOfChannles, numOfChannels;
+	uint8_t* data = stbi_load(filename.c_str(), &width, &height, &numOfChannels, 0);
+	if (!data) data = stbi_load(("../../../" + filename).c_str(), &width, &height, &numOfChannels, 0);
+
+	uint32_t texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	if (data)
+	{
+		GLenum format = 0;
+		switch (numOfChannels)
+		{
+		case 1: format = GL_RED; break;
+		case 3: format = GL_RGB; break;
+		case 4: format = GL_RGBA; break;
+		default: fmt::print(fg(fmt::color::red), "Failed to get image format: {}\n", filename);
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+
+		m_loadedTextures.insert({ filename, texture });
+		fmt::print("Loaded texture: {}\n", filename);
+	}
+	else
+	{
+		fmt::print(fg(fmt::color::red), "Failed to load texture: {}\n", filename);
+	}
+
+	if (outWidth != nullptr)
+		*outWidth = width;
+	if (outHeight != nullptr)
+		*outHeight = height;
+
+	return texture;
 }
 
-void Renderer::Draw(uint32_t imageId, glm::vec2 pos, glm::vec2 size, float rotation, Rgb color)
+void Renderer::Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rotation, Rgb color)
 {
+	glm::mat4 model(1.0f);
+	model = glm::translate(model, { pos.x, pos.y, 0.0f });
+	model = glm::rotate(model, rotation, { 0.0f, 0.0f, 1.0f });
+	model = glm::scale(model, { size.x, size.y, 1.0f });
 
+	glm::mat4 view(1.0f);
+
+	glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f);
+
+	glUseProgram(m_defaultShader);
+	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniform4f(glGetUniformLocation(m_defaultShader, "colorTint"), color.r, color.g, color.b, 1.0f);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+
+	glBindVertexArray(m_rectVao);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 GLFWwindow* Renderer::GetWindow()
 {
 	return m_window;
+}
+
+void Renderer::CheckGlErrors()
+{
+	while (GLenum err = glGetError())
+	{
+		switch (err)
+		{
+		case GL_INVALID_ENUM: fmt::print(fg(fmt::color::red), "OpenGL Error GL_INVALID_ENUM\n"); break;
+		case GL_INVALID_VALUE: fmt::print(fg(fmt::color::red), "OpenGL Error GL_INVALID_VALUE\n"); break;
+		case GL_INVALID_OPERATION: fmt::print(fg(fmt::color::red), "OpenGL Error GL_INVALID_OPERATION\n"); break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION: fmt::print(fg(fmt::color::red), "OpenGL Error GL_INVALID_FRAMEBUFFER_OPERATION\n"); break;
+		case GL_OUT_OF_MEMORY: fmt::print(fg(fmt::color::red), "OpenGL Error GL_OUT_OF_MEMORY\n"); break;
+		default: fmt::print(fg(fmt::color::red), "Weird OpenGL Error!\n");
+		}
+	}
+}
+
+void Renderer::Destroy()
+{
+	fmt::print("Renderer::Destroy\n");
+
+	glDeleteShader(m_defaultShader);
+
+	glDeleteVertexArrays(1, &m_rectVao);
+	glDeleteBuffers(1, &m_rectVbo);
+	glDeleteBuffers(1, &m_rectEbo);
+
+	for (auto& [texName, texId] : m_loadedTextures)
+		glDeleteTextures(1, &texId);
 }
 
 uint32_t Renderer::CreateShaderProgram(const char* vertexSource, const char* fragmentSource)
@@ -109,6 +215,8 @@ uint32_t Renderer::CreateShaderProgram(const char* vertexSource, const char* fra
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	fmt::print("Created shader program\n");
+
 	return shaderProgram;
 }
 
@@ -134,28 +242,47 @@ uint32_t Renderer::CreateShader(const char* source, uint32_t type)
 	return shader;
 }
 
-void Renderer::CheckGlErrors()
+void Renderer::CreateRectBuffers()
 {
-	while (GLenum err = glGetError())
-	{
-		switch (err)
-		{
-		case GL_INVALID_ENUM: fmt::print(fg(fmt::color::red), "OpenGL Error GL_INVALID_ENUM\n"); break;
-		case GL_INVALID_VALUE: fmt::print(fg(fmt::color::red), "OpenGL Error GL_INVALID_VALUE\n"); break;
-		case GL_INVALID_OPERATION: fmt::print(fg(fmt::color::red), "OpenGL Error GL_INVALID_OPERATION\n"); break;
-		case GL_INVALID_FRAMEBUFFER_OPERATION: fmt::print(fg(fmt::color::red), "OpenGL Error GL_INVALID_FRAMEBUFFER_OPERATION\n"); break;
-		case GL_OUT_OF_MEMORY: fmt::print(fg(fmt::color::red), "OpenGL Error GL_OUT_OF_MEMORY\n"); break;
-		default: fmt::print(fg(fmt::color::red), "Weird OpenGL Error!\n");
-		}
-	}
+	float vertices[] = {
+		// pos			// tex coords
+		-0.5f, -0.5f,	0.0f, 0.0f,
+		 0.5f, -0.5f,	1.0f, 0.0f,
+		 0.5f,  0.5f,	1.0f, 1.0f,
+		-0.5f,  0.5f,	0.0f, 1.0f
+	};
 
+	uint32_t indices[] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
+	glGenVertexArrays(1, &m_rectVao);
+	glBindVertexArray(m_rectVao);
+
+	glGenBuffers(1, &m_rectVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, m_rectVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_rectEbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_rectEbo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	fmt::print("Created rect buffers\n");
 }
 
-void Renderer::Destroy()
-{
-	glDeleteShader(m_defaultShader);
-}
-
-std::unordered_map<std::string, uint32_t> Renderer::m_loadedImages;
+std::unordered_map<std::string, uint32_t> Renderer::m_loadedTextures;
 GLFWwindow* Renderer::m_window;
 uint32_t Renderer::m_defaultShader;
+uint32_t Renderer::m_rectVao;
+uint32_t Renderer::m_rectVbo;
+uint32_t Renderer::m_rectEbo;
