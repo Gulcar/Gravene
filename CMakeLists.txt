@@ -5,9 +5,12 @@ project(Gravene)
 
 add_executable(${PROJECT_NAME}
 	src/Main.cpp
+	src/Renderer.cpp
 	deps/glad-4.3/src/glad.c
 	deps/stb_image/stb_image.cpp
 )
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
 	deps/fmt-9.1.0/include/

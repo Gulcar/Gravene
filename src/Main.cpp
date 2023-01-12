@@ -11,6 +11,8 @@
 #include <glm/glm.hpp>
 #include <stb_image.h>
 
+#include "Renderer.h"
+
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
@@ -20,34 +22,19 @@ int main()
 {
 	fmt::print("pozdravljen svet\n");
 
-	if (!glfwInit())
-		fmt::print(fg(fmt::color::red), "Failed to init glfw!\n");
+	Renderer::Init();
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	GLFWwindow* window = glfwCreateWindow(1280, 720, "Gravene", nullptr, nullptr);
-	if (window == nullptr)
-		fmt::print(fg(fmt::color::red), "Failed to create a glfw window!\n");
-
-	glfwMakeContextCurrent(window);
-	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-
-	glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
-	glViewport(0, 0, 1280, 720);
-
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(Renderer::GetWindow()))
 	{
 		glfwPollEvents();
 
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE))
-			glfwSetWindowShouldClose(window, true);
+		if (glfwGetKey(Renderer::GetWindow(), GLFW_KEY_ESCAPE))
+			glfwSetWindowShouldClose(Renderer::GetWindow(), true);
 
-		glClearColor(1.0f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(Renderer::GetWindow());
 	}
 
 	glfwTerminate();
