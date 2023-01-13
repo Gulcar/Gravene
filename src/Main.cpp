@@ -10,11 +10,6 @@
 
 #include "Renderer.h"
 
-void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
-
 int main()
 {
 	fmt::print("pozdravljen svet\n");
@@ -25,19 +20,13 @@ int main()
 
 	while (!glfwWindowShouldClose(Renderer::GetWindow()))
 	{
-		glfwPollEvents();
-
 		if (glfwGetKey(Renderer::GetWindow(), GLFW_KEY_ESCAPE))
 			glfwSetWindowShouldClose(Renderer::GetWindow(), true);
 
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		Renderer::NewFrame();
 
-		Renderer::Draw(amogusImage, { 0, 0 }, { 10, 5 });
-
-		glfwSwapBuffers(Renderer::GetWindow());
+		Renderer::Draw(amogusImage, { std::sinf(glfwGetTime()) * 5.0f, 0}, {10, 5}, glfwGetTime() * 180.0f, {std::sinf(glfwGetTime()), std::cosf(glfwGetTime()), std::tanf(glfwGetTime())});
 	}
 
 	Renderer::Destroy();
-	glfwTerminate();
 }

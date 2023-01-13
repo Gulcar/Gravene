@@ -132,7 +132,7 @@ void Renderer::Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rot
 {
 	glm::mat4 model(1.0f);
 	model = glm::translate(model, { pos.x, pos.y, 0.0f });
-	model = glm::rotate(model, rotation, { 0.0f, 0.0f, 1.0f });
+	model = glm::rotate(model, glm::radians(rotation), { 0.0f, 0.0f, 1.0f });
 	model = glm::scale(model, { size.x, size.y, 1.0f });
 
 	glm::mat4 view(1.0f);
@@ -146,6 +146,15 @@ void Renderer::Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rot
 
 	glBindVertexArray(m_rectVao);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+void Renderer::NewFrame()
+{
+	glfwSwapBuffers(m_window);
+	glfwPollEvents();
+
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 GLFWwindow* Renderer::GetWindow()
@@ -181,6 +190,8 @@ void Renderer::Destroy()
 
 	for (auto& [texName, texId] : m_loadedTextures)
 		glDeleteTextures(1, &texId);
+
+	glfwTerminate();
 }
 
 void Renderer::CreateProjectionMat()

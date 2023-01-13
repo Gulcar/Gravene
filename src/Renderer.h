@@ -20,6 +20,8 @@ public:
 	static uint32_t LoadTexture(const std::string& filename);
 	static void Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rotation = 0.0f, Rgb color = {1.0f, 1.0f, 1.0f});
 
+	static void NewFrame();
+
 	static struct GLFWwindow* GetWindow();
 
 	static void CheckGlErrors();
