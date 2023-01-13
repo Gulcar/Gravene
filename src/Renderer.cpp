@@ -48,6 +48,9 @@ void main()
 static void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
+	Renderer::WindowWidth = width;
+	Renderer::WindowHeight = height;
+	Renderer::CreateProjectionMat();
 }
 
 void Renderer::Init()
@@ -69,7 +72,7 @@ void Renderer::Init()
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
 	glfwSetFramebufferSizeCallback(m_window, FramebufferSizeCallback);
-	glViewport(0, 0, 1280, 720);
+	FramebufferSizeCallback(m_window, 1280, 720);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -81,7 +84,7 @@ void Renderer::Init()
 	stbi_set_flip_vertically_on_load(true);
 }
 
-uint32_t Renderer::LoadTexture(const std::string& filename, int* outWidth, int* outHeight)
+uint32_t Renderer::LoadTexture(const std::string& filename)
 {
 	if (m_loadedTextures.find(filename) != m_loadedTextures.end())
 	{
@@ -122,11 +125,6 @@ uint32_t Renderer::LoadTexture(const std::string& filename, int* outWidth, int* 
 		fmt::print(fg(fmt::color::red), "Failed to load texture: {}\n", filename);
 	}
 
-	if (outWidth != nullptr)
-		*outWidth = width;
-	if (outHeight != nullptr)
-		*outHeight = height;
-
 	return texture;
 }
 
@@ -139,12 +137,10 @@ void Renderer::Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rot
 
 	glm::mat4 view(1.0f);
 
-	glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f);
-
 	glUseProgram(m_defaultShader);
 	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "model"), 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "projection"), 1, GL_FALSE, &m_projection[0][0]);
 	glUniform4f(glGetUniformLocation(m_defaultShader, "colorTint"), color.r, color.g, color.b, 1.0f);
 	glBindTexture(GL_TEXTURE_2D, textureId);
 
@@ -185,6 +181,13 @@ void Renderer::Destroy()
 
 	for (auto& [texName, texId] : m_loadedTextures)
 		glDeleteTextures(1, &texId);
+}
+
+void Renderer::CreateProjectionMat()
+{
+	float ratio = (float)WindowWidth / (float)WindowHeight;
+
+	m_projection = glm::ortho(-10.0f * ratio, 10.0f * ratio, -10.0f, 10.0f);
 }
 
 uint32_t Renderer::CreateShaderProgram(const char* vertexSource, const char* fragmentSource)
@@ -280,9 +283,16 @@ void Renderer::CreateRectBuffers()
 	fmt::print("Created rect buffers\n");
 }
 
+int Renderer::WindowWidth;
+int Renderer::WindowHeight;
+
 std::unordered_map<std::string, uint32_t> Renderer::m_loadedTextures;
 GLFWwindow* Renderer::m_window;
+
 uint32_t Renderer::m_defaultShader;
+
 uint32_t Renderer::m_rectVao;
 uint32_t Renderer::m_rectVbo;
 uint32_t Renderer::m_rectEbo;
+
+glm::mat4 Renderer::m_projection;
