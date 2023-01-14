@@ -80,6 +80,7 @@ void Renderer::Init()
 	m_defaultShader = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
 
 	CreateRectBuffers();
+	CreatePartialRectBuffers();
 
 	stbi_set_flip_vertically_on_load(true);
 }
@@ -95,6 +96,7 @@ uint32_t Renderer::LoadTexture(const std::string& filename)
 	int width, height, numOfChannles, numOfChannels;
 	uint8_t* data = stbi_load(filename.c_str(), &width, &height, &numOfChannels, 0);
 	if (!data) data = stbi_load(("../../../" + filename).c_str(), &width, &height, &numOfChannels, 0);
+	if (!data) data = stbi_load(("../" + filename).c_str(), & width, & height, & numOfChannels, 0);
 
 	uint32_t texture;
 	glGenTextures(1, &texture);
@@ -145,6 +147,41 @@ void Renderer::Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rot
 	glBindTexture(GL_TEXTURE_2D, textureId);
 
 	glBindVertexArray(m_rectVao);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+void Renderer::DrawPartial(uint32_t textureId, glm::vec2 pos, glm::vec2 size,
+	glm::vec2 pixelPos, glm::vec2 pixelSize, glm::vec2 textureSize, float rotation, Rgb color)
+{
+	glm::mat4 model(1.0f);
+	model = glm::translate(model, { pos.x, pos.y, 0.0f });
+	model = glm::rotate(model, glm::radians(rotation), { 0.0f, 0.0f, 1.0f });
+	model = glm::scale(model, { size.x, size.y, 1.0f });
+
+	glm::mat4 view(1.0f);
+
+	glUseProgram(m_defaultShader);
+	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(m_defaultShader, "projection"), 1, GL_FALSE, &m_projection[0][0]);
+	glUniform4f(glGetUniformLocation(m_defaultShader, "colorTint"), color.r, color.g, color.b, 1.0f);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+
+	glm::vec2 posFraction = pixelPos / textureSize;
+	glm::vec2 sizeFraction = pixelSize / textureSize;
+	float vertices[] = {
+		// pos			// tex coords
+		-0.5f, -0.5f,	posFraction.x,						1.0f - posFraction.y - sizeFraction.y,
+		 0.5f, -0.5f,	sizeFraction.x + posFraction.x,		1.0f - posFraction.y - sizeFraction.y,
+		 0.5f,  0.5f,	sizeFraction.x + posFraction.x,		1.0f - posFraction.y,
+		-0.5f,  0.5f,	posFraction.x,						1.0f - posFraction.y
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_partialRectVbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(m_partialRectVao);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
@@ -294,6 +331,44 @@ void Renderer::CreateRectBuffers()
 	fmt::print("Created rect buffers\n");
 }
 
+void Renderer::CreatePartialRectBuffers()
+{
+	float vertices[] = {
+		// pos			// tex coords
+		-0.5f, -0.5f,	0.0f, 0.0f,
+		 0.5f, -0.5f,	1.0f, 0.0f,
+		 0.5f,  0.5f,	1.0f, 1.0f,
+		-0.5f,  0.5f,	0.0f, 1.0f
+	};
+
+	uint32_t indices[] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
+	glGenVertexArrays(1, &m_partialRectVao);
+	glBindVertexArray(m_partialRectVao);
+
+	glGenBuffers(1, &m_partialRectVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, m_partialRectVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+
+	glGenBuffers(1, &m_partialRectEbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_partialRectEbo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	fmt::print("Created partial rect buffers\n");
+}
+
 int Renderer::WindowWidth;
 int Renderer::WindowHeight;
 
@@ -305,5 +380,9 @@ uint32_t Renderer::m_defaultShader;
 uint32_t Renderer::m_rectVao;
 uint32_t Renderer::m_rectVbo;
 uint32_t Renderer::m_rectEbo;
+
+uint32_t Renderer::m_partialRectVao;
+uint32_t Renderer::m_partialRectVbo;
+uint32_t Renderer::m_partialRectEbo;
 
 glm::mat4 Renderer::m_projection;

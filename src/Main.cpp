@@ -17,6 +17,7 @@ int main()
 	Renderer::Init();
 
 	uint32_t amogusImage = Renderer::LoadTexture("resources/amogus.png");
+	uint32_t font = Renderer::LoadTexture("resources/bitmap_font.png");
 
 	while (!glfwWindowShouldClose(Renderer::GetWindow()))
 	{
@@ -26,6 +27,7 @@ int main()
 		Renderer::NewFrame();
 
 		Renderer::Draw(amogusImage, { std::sinf(glfwGetTime()) * 5.0f, 0}, {10, 5}, glfwGetTime() * 180.0f, {std::sinf(glfwGetTime()), std::cosf(glfwGetTime()), std::tanf(glfwGetTime())});
+		Renderer::DrawPartial(font, { 0,0 }, { 6.4f, 9.6f }, { 0, 96 }, { 64 * 2, 96 * 2 }, {1024, 576});
 	}
 
 	Renderer::Destroy();
