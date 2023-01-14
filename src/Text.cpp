@@ -1,0 +1,50 @@
+#include "Text.h"
+
+#include "Renderer.h"
+
+void Text::Init(const std::string& fontFile, glm::vec2 filePixelSize, glm::vec2 charPixelSize)
+{
+	m_fontTexture = Renderer::LoadTexture(fontFile);
+	m_filePixelSize = filePixelSize;
+	m_charPixelSize = charPixelSize;
+}
+
+void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered, Rgb color)
+{
+	glm::vec2 actualSize = { size * m_charPixelSize.x / m_charPixelSize.y, size };
+
+	if (centered)
+	{
+		pos.x -= actualSize.x * text.length() / 2.0f;
+	}
+
+	glm::vec2 currentPos = pos;
+
+	for (int i = 0; i < text.length(); i++)
+	{
+		char character = text[i];
+
+		if (character == '\n')
+		{
+			currentPos.x = pos.x;
+			currentPos.x += actualSize.x;
+			continue;
+		}
+		if (character == ' ')
+		{
+			currentPos.x += actualSize.x;
+			continue;
+		}
+		
+		int xOffset = (character - 32) * m_charPixelSize.x;
+		int yOffset = (xOffset / (int)m_filePixelSize.x) * m_charPixelSize.y;
+		xOffset %= (int)m_filePixelSize.x;
+
+		Renderer::DrawPartial(m_fontTexture, currentPos, actualSize, { xOffset, yOffset }, m_charPixelSize, m_filePixelSize, 0.0f, color);
+		currentPos.x += actualSize.x;
+	}
+}
+
+uint32_t Text::m_fontTexture;
+glm::vec2 Text::m_filePixelSize;
+glm::vec2 Text::m_charPixelSize;

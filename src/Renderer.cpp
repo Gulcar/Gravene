@@ -215,6 +215,11 @@ void Renderer::CheckGlErrors()
 	}
 }
 
+float Renderer::GetRightEdgeWorldPos()
+{
+	return 10.0f * WindowWidth / WindowHeight;
+}
+
 void Renderer::Destroy()
 {
 	fmt::print("Renderer::Destroy\n");

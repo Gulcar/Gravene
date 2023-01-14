@@ -6,6 +6,7 @@ project(Gravene)
 add_executable(${PROJECT_NAME}
 	src/Main.cpp
 	src/Renderer.cpp
+	src/Text.cpp
 	src/AsioCompile.cpp
 	deps/glad-4.3/src/glad.c
 	deps/stb_image/stb_image.cpp

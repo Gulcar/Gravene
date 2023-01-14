@@ -32,6 +32,8 @@ public:
 	static int WindowHeight;
 	static void CreateProjectionMat();
 
+	static float GetRightEdgeWorldPos();
+
 	static void Destroy();
 
 private:
