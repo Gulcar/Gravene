@@ -24,7 +24,7 @@ public:
 
 	static void NewFrame();
 
-	static struct GLFWwindow* GetWindow();
+	static inline struct GLFWwindow* GetWindow() { return m_window; }
 
 	static void CheckGlErrors();
 

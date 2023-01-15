@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include <functional>
 #include <memory>
+#include <glm/vec2.hpp>
 
 class Input
 {
@@ -25,6 +26,10 @@ public:
 	static MouseCallbackPtr BindMouseDown(MouseCallback callback);
 	// to unbind: Input::UnbinMouseDown(callbackPtr);
 	static void UnbindMouseDown(MouseCallbackPtr callback);
+
+	static bool GetKey(int key);
+	static bool GetMouseButton(int button);
+	static glm::vec2 GetMousePos();
 
 private:
 	static void GlfwKeyCallback(struct GLFWwindow* window, int key, int scancode, int action, int mods);

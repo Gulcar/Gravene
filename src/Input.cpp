@@ -58,5 +58,22 @@ void Input::GlfwMouseCallback(struct GLFWwindow* window, int button, int action,
 	}
 }
 
+bool Input::GetKey(int key)
+{
+	return glfwGetKey(Renderer::GetWindow(), key);
+}
+
+bool Input::GetMouseButton(int button)
+{
+	return glfwGetMouseButton(Renderer::GetWindow(), button);
+}
+
+glm::vec2 Input::GetMousePos()
+{
+	double x, y;
+	glfwGetCursorPos(Renderer::GetWindow(), &x, &y);
+	return { x, y };
+}
+
 std::unordered_set<Input::KeyCallbackPtr> Input::s_keydownCallbackList;
 std::unordered_set<Input::MouseCallbackPtr> Input::s_mousedownCallbackList;

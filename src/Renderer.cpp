@@ -198,11 +198,6 @@ void Renderer::NewFrame()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-GLFWwindow* Renderer::GetWindow()
-{
-	return m_window;
-}
-
 void Renderer::CheckGlErrors()
 {
 	while (GLenum err = glGetError())
