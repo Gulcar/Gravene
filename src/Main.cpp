@@ -10,16 +10,17 @@
 
 #include "Renderer.h"
 #include "Text.h"
+#include "Input.h"
 
 int main()
 {
 	fmt::print("pozdravljen svet\n");
 
 	Renderer::Init();
+	Text::Init("resources/bitmap_font.png", { 1024, 576 }, { 64, 96 });
+	Input::Init();
 
 	uint32_t amogusImage = Renderer::LoadTexture("resources/amogus.png");
-	
-	Text::Init("resources/bitmap_font.png", { 1024, 576 }, { 64, 96 });
 
 	while (!glfwWindowShouldClose(Renderer::GetWindow()))
 	{

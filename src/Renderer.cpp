@@ -83,6 +83,10 @@ void Renderer::Init()
 	CreatePartialRectBuffers();
 
 	stbi_set_flip_vertically_on_load(true);
+
+	glfwSwapInterval(1);
+
+	fmt::print("OpenGL Version: {}\n", (char*)glGetString(GL_VERSION));
 }
 
 uint32_t Renderer::LoadTexture(const std::string& filename)
