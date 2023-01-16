@@ -29,7 +29,6 @@ int main()
 
 	Renderer::Init();
 	Text::Init("resources/bitmap_font.png", { 1024, 576 }, { 64, 96 });
-	Input::Init();
 
 	SceneManager::AssignScene<GameScene>("GameScene");
 	SceneManager::AssignScene<MenuScene>("MenuScene");
@@ -39,6 +38,8 @@ int main()
 	{
 		if (glfwGetKey(Renderer::GetWindow(), GLFW_KEY_ESCAPE))
 			glfwSetWindowShouldClose(Renderer::GetWindow(), true);
+
+		Input::Poll();
 
 		SceneManager::Update();
 	}

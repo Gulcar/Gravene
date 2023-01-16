@@ -33,6 +33,8 @@ void GameScene::Draw(float deltaTime)
 		updateFpsCounter = 0.15f;
 	}
 	Text::Write(fpsString, { -Renderer::GetRightEdgeWorldPos() + 0.5f, 9.4f }, 0.8f);
+
+	Text::Write(fmt::format("{}, {}", Input::GetMouseWorldPos().x, Input::GetMouseWorldPos().y), { 0.0f, 7.0f }, 0.75f, true);
 }
 
 void GameScene::End()

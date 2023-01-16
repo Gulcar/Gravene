@@ -25,11 +25,11 @@ public:
 	static void NewFrame();
 
 	static inline struct GLFWwindow* GetWindow() { return m_window; }
+	static inline int GetWindowWidth() { return m_windowWidth; }
+	static inline int GetWindowHeight() { return m_windowHeight; }
 
 	static void CheckGlErrors();
 
-	static int WindowWidth;
-	static int WindowHeight;
 	static void CreateProjectionMat();
 
 	static float GetRightEdgeWorldPos();
@@ -43,6 +43,8 @@ private:
 
 	static void CreateRectBuffers();
 	static void CreatePartialRectBuffers();
+
+	static void GlfwFramebufferSizeCallback(struct GLFWwindow* window, int width, int height);
 
 private:
 	static std::unordered_map<std::string, uint32_t> m_loadedTextures;
@@ -59,4 +61,7 @@ private:
 	static uint32_t m_partialRectEbo;
 
 	static glm::mat4 m_projection;
+
+	static int m_windowWidth;
+	static int m_windowHeight;
 };

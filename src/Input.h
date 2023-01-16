@@ -1,40 +1,31 @@
 #pragma once
 
-#include <unordered_set>
-#include <functional>
-#include <memory>
+#include <bitset>
 #include <glm/vec2.hpp>
 
 class Input
 {
 public:
-	using KeyCallback = std::function<void(int)>;
-	using KeyCallbackPtr = std::shared_ptr<KeyCallback>;
-
-	using MouseCallback = std::function<void(int)>;
-	using MouseCallbackPtr = std::shared_ptr<MouseCallback>;
+	using Key = int;
+	using MouseButton = int;
 
 public:
-	static void Init();
+	static void Poll();
 
-	// to bind: Input::KeyCallbackPtr callbackPtr = Input::BindKeyDown(std::bind(&Class::Function, this, std::placeholders::_1));
-	static KeyCallbackPtr BindKeyDown(KeyCallback callback);
-	// to unbind: Input::UnbindKeyDown(callbackPtr);
-	static void UnbindKeyDown(KeyCallbackPtr callback);
+	static bool GetKey(Key key);
+	static bool GetKeyDown(Key key);
+	static bool GetKeyUp(Key key);
 
-	// to bind: Input::MouseCallbackPtr callbackPtr = Input::BindMouseDown(std::bind(&Class::Function, this, std::placeholders::_1));
-	static MouseCallbackPtr BindMouseDown(MouseCallback callback);
-	// to unbind: Input::UnbinMouseDown(callbackPtr);
-	static void UnbindMouseDown(MouseCallbackPtr callback);
+	static bool GetMouseButton(MouseButton button);
+	static bool GetMouseButtonDown(MouseButton button);
+	static bool GetMouseButtonUp(MouseButton button);
 
-	static bool GetKey(int key);
-	static bool GetMouseButton(int button);
 	static glm::vec2 GetMousePos();
+	static glm::vec2 GetMouseWorldPos();
 
 private:
-	static void GlfwKeyCallback(struct GLFWwindow* window, int key, int scancode, int action, int mods);
-	static std::unordered_set<KeyCallbackPtr> s_keydownCallbackList;
-
-	static void GlfwMouseCallback(struct GLFWwindow* window, int button, int action, int mods);
-	static std::unordered_set<MouseCallbackPtr> s_mousedownCallbackList;
+	static std::bitset<349> s_keys;
+	static std::bitset<349> s_prevKeys;
+	static std::bitset<8> s_mouseButtons;
+	static std::bitset<8> s_prevMouseButtons;
 };

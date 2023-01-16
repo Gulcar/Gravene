@@ -4,76 +4,75 @@
 #include "Renderer.h"
 #include <fmt/core.h>
 
-void Input::Init()
+void Input::Poll()
 {
-	glfwSetKeyCallback(Renderer::GetWindow(), Input::GlfwKeyCallback);
-	glfwSetMouseButtonCallback(Renderer::GetWindow(), Input::GlfwMouseCallback);
-}
-
-Input::KeyCallbackPtr Input::BindKeyDown(KeyCallback callback)
-{
-	KeyCallbackPtr cbptr = std::make_shared<KeyCallback>(callback);
-	s_keydownCallbackList.insert(cbptr);
-	return cbptr;
-}
-
-void Input::UnbindKeyDown(KeyCallbackPtr callback)
-{
-	auto it = s_keydownCallbackList.find(callback);
-	s_keydownCallbackList.erase(it);
-}
-
-void Input::GlfwKeyCallback(struct GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if (action == GLFW_PRESS)
+	for (int i = 32; i < 349; i++)
 	{
-		for (auto& f : s_keydownCallbackList)
-		{
-			(*f)(key);
-		}
+		s_prevKeys[i] = s_keys[i];
+		s_keys[i] = glfwGetKey(Renderer::GetWindow(), i);
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		s_prevMouseButtons[i] = s_mouseButtons[i];
+		s_mouseButtons[i] = glfwGetMouseButton(Renderer::GetWindow(), i);
 	}
 }
 
-Input::MouseCallbackPtr Input::BindMouseDown(Input::MouseCallback callback)
+bool Input::GetKey(Input::Key key)
 {
-	MouseCallbackPtr cbptr = std::make_shared<MouseCallback>(callback);
-	s_mousedownCallbackList.insert(cbptr);
-	return cbptr;
+	return s_keys[key];
 }
 
-void Input::UnbindMouseDown(Input::MouseCallbackPtr callback)
+bool Input::GetKeyDown(Input::Key key)
 {
-	auto it = s_mousedownCallbackList.find(callback);
-	s_mousedownCallbackList.erase(it);
+	return (s_keys[key] && !s_prevKeys[key]);
 }
 
-void Input::GlfwMouseCallback(struct GLFWwindow* window, int button, int action, int mods)
+bool Input::GetKeyUp(Input::Key key)
 {
-	if (action == GLFW_PRESS)
-	{
-		for (auto& f : s_mousedownCallbackList)
-		{
-			(*f)(button);
-		}
-	}
+	return (!s_keys[key] && s_prevKeys[key]);
 }
 
-bool Input::GetKey(int key)
+bool Input::GetMouseButton(Input::MouseButton button)
 {
-	return glfwGetKey(Renderer::GetWindow(), key);
+	return s_mouseButtons[button];
 }
 
-bool Input::GetMouseButton(int button)
+bool Input::GetMouseButtonDown(Input::MouseButton button)
 {
-	return glfwGetMouseButton(Renderer::GetWindow(), button);
+	return (s_mouseButtons[button] && !s_prevMouseButtons[button]);
+}
+
+bool Input::GetMouseButtonUp(Input::MouseButton button)
+{
+	return (!s_mouseButtons[button] && s_prevMouseButtons[button]);
 }
 
 glm::vec2 Input::GetMousePos()
 {
 	double x, y;
 	glfwGetCursorPos(Renderer::GetWindow(), &x, &y);
+
 	return { x, y };
 }
 
-std::unordered_set<Input::KeyCallbackPtr> Input::s_keydownCallbackList;
-std::unordered_set<Input::MouseCallbackPtr> Input::s_mousedownCallbackList;
+glm::vec2 Input::GetMouseWorldPos()
+{
+	glm::vec2 pos = GetMousePos();
+
+	pos.x -= Renderer::GetWindowWidth() / 2.0f;
+	pos.x /= (float)Renderer::GetWindowWidth() / 2.0f;
+	pos.x *= ((float)Renderer::GetWindowWidth() / (float)Renderer::GetWindowHeight()) * 10.0f;
+
+	pos.y -= Renderer::GetWindowHeight() / 2.0f;
+	pos.y = -pos.y;
+	pos.y = pos.y / (float)Renderer::GetWindowHeight() * 20.0f;
+
+	return pos;
+}
+
+std::bitset<349> Input::s_keys(0);
+std::bitset<349> Input::s_prevKeys(0);
+std::bitset<8> Input::s_mouseButtons(0);
+std::bitset<8> Input::s_prevMouseButtons(0);

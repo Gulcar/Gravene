@@ -45,14 +45,6 @@ void main()
 }
 )";
 
-static void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-	Renderer::WindowWidth = width;
-	Renderer::WindowHeight = height;
-	Renderer::CreateProjectionMat();
-}
-
 void Renderer::Init()
 {
 	fmt::print("Renderer::Init\n");
@@ -71,8 +63,8 @@ void Renderer::Init()
 	glfwMakeContextCurrent(m_window);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-	glfwSetFramebufferSizeCallback(m_window, FramebufferSizeCallback);
-	FramebufferSizeCallback(m_window, 1280, 720);
+	glfwSetFramebufferSizeCallback(m_window, Renderer::GlfwFramebufferSizeCallback);
+	GlfwFramebufferSizeCallback(m_window, 1280, 720);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -216,7 +208,7 @@ void Renderer::CheckGlErrors()
 
 float Renderer::GetRightEdgeWorldPos()
 {
-	return 10.0f * WindowWidth / WindowHeight;
+	return 10.0f * m_windowWidth / m_windowHeight;
 }
 
 void Renderer::Destroy()
@@ -237,7 +229,7 @@ void Renderer::Destroy()
 
 void Renderer::CreateProjectionMat()
 {
-	float ratio = (float)WindowWidth / (float)WindowHeight;
+	float ratio = (float)m_windowWidth / (float)m_windowHeight;
 
 	m_projection = glm::ortho(-10.0f * ratio, 10.0f * ratio, -10.0f, 10.0f);
 }
@@ -373,8 +365,13 @@ void Renderer::CreatePartialRectBuffers()
 	fmt::print("Created partial rect buffers\n");
 }
 
-int Renderer::WindowWidth;
-int Renderer::WindowHeight;
+void Renderer::GlfwFramebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+	m_windowWidth = width;
+	m_windowHeight = height;
+	Renderer::CreateProjectionMat();
+}
 
 std::unordered_map<std::string, uint32_t> Renderer::m_loadedTextures;
 GLFWwindow* Renderer::m_window;
@@ -390,3 +387,6 @@ uint32_t Renderer::m_partialRectVbo;
 uint32_t Renderer::m_partialRectEbo;
 
 glm::mat4 Renderer::m_projection;
+
+int Renderer::m_windowWidth;
+int Renderer::m_windowHeight;
