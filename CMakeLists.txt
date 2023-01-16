@@ -8,6 +8,9 @@ add_executable(${PROJECT_NAME}
 	src/Renderer.cpp
 	src/Text.cpp
 	src/Input.cpp
+	src/SceneManager.cpp
+	src/GameScene.cpp
+	src/MenuScene.cpp
 	src/AsioCompile.cpp
 	deps/glad-4.3/src/glad.c
 	deps/stb_image/stb_image.cpp
