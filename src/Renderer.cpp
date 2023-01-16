@@ -66,6 +66,8 @@ void Renderer::Init()
 	glfwSetFramebufferSizeCallback(m_window, Renderer::GlfwFramebufferSizeCallback);
 	GlfwFramebufferSizeCallback(m_window, 1280, 720);
 
+	glfwSetErrorCallback(Renderer::GlfwErrorCallback);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -214,6 +216,8 @@ float Renderer::GetRightEdgeWorldPos()
 void Renderer::Destroy()
 {
 	fmt::print("Renderer::Destroy\n");
+
+	CheckGlErrors();
 
 	glDeleteShader(m_defaultShader);
 
@@ -371,6 +375,11 @@ void Renderer::GlfwFramebufferSizeCallback(GLFWwindow* window, int width, int he
 	m_windowWidth = width;
 	m_windowHeight = height;
 	Renderer::CreateProjectionMat();
+}
+
+void Renderer::GlfwErrorCallback(int errorCode, const char* desc)
+{
+	fmt::print(fg(fmt::color::red), "Glfw Error {}: {}\n", errorCode, desc);
 }
 
 std::unordered_map<std::string, uint32_t> Renderer::m_loadedTextures;

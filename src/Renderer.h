@@ -45,6 +45,7 @@ private:
 	static void CreatePartialRectBuffers();
 
 	static void GlfwFramebufferSizeCallback(struct GLFWwindow* window, int width, int height);
+	static void GlfwErrorCallback(int errorCode, const char* desc);
 
 private:
 	static std::unordered_map<std::string, uint32_t> m_loadedTextures;
