@@ -128,7 +128,7 @@ uint32_t Renderer::LoadTexture(const std::string& filename)
 	return texture;
 }
 
-void Renderer::Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rotation, Rgb color)
+void Renderer::Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rotation, glm::vec3 color)
 {
 	glm::mat4 model(1.0f);
 	model = glm::translate(model, { pos.x, pos.y, 0.0f });
@@ -149,7 +149,7 @@ void Renderer::Draw(uint32_t textureId, glm::vec2 pos, glm::vec2 size, float rot
 }
 
 void Renderer::DrawPartial(uint32_t textureId, glm::vec2 pos, glm::vec2 size,
-	glm::vec2 pixelPos, glm::vec2 pixelSize, glm::vec2 textureSize, float rotation, Rgb color)
+	glm::vec2 pixelPos, glm::vec2 pixelSize, glm::vec2 textureSize, float rotation, glm::vec3 color)
 {
 	glm::mat4 model(1.0f);
 	model = glm::translate(model, { pos.x, pos.y, 0.0f });

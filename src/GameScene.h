@@ -12,4 +12,5 @@ public:
 
 private:
 	uint32_t m_amongusImage;
+	uint32_t m_playerTex;
 };

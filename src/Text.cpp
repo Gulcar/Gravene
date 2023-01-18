@@ -9,7 +9,7 @@ void Text::Init(const std::string& fontFile, glm::vec2 filePixelSize, glm::vec2 
 	m_charPixelSize = charPixelSize;
 }
 
-void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered, Rgb color)
+void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered, glm::vec3 color)
 {
 	glm::vec2 actualSize = { size * m_charPixelSize.x / m_charPixelSize.y, size };
 

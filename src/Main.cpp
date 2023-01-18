@@ -18,6 +18,7 @@ static void EnableTerminalColors()
 #include "SceneManager.h"
 #include "GameScene.h"
 #include "MenuScene.h"
+#include "TestScene.h"
 
 int main()
 {
@@ -32,6 +33,7 @@ int main()
 
 	SceneManager::AssignScene<GameScene>("GameScene");
 	SceneManager::AssignScene<MenuScene>("MenuScene");
+	SceneManager::AssignScene<TestScene>("TestScene");
 	SceneManager::SwitchToScene("GameScene");
 
 	while (!glfwWindowShouldClose(Renderer::GetWindow()))
