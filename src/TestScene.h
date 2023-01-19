@@ -28,15 +28,7 @@ public:
 
 		Text::Write("Pozdravljen Svet!!", { 0.0f, 0.0f }, 1.0f, true);
 
-		static float updateFpsCounter = 0.15f;
-		static std::string fpsString = fmt::format("{}fps", (int)(1.0f / deltaTime));
-		updateFpsCounter -= deltaTime;
-		if (updateFpsCounter < 0.0f)
-		{
-			fpsString = fmt::format("{}fps", (int)(1.0f / deltaTime));
-			updateFpsCounter = 0.15f;
-		}
-		Text::Write(fpsString, { -Renderer::GetRightEdgeWorldPos() + 0.5f, 9.4f }, 0.8f);
+		Text::WriteFps(deltaTime);
 
 		Text::Write(fmt::format("{}, {}", Input::GetMouseWorldPos().x, Input::GetMouseWorldPos().y), { 0.0f, 7.0f }, 0.75f, true);
 	}

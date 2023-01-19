@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SceneManager.h"
+#include "LocalPlayer.h"
 
 class GameScene : public Scene
 {
@@ -11,6 +12,5 @@ public:
 	void End() override;
 
 private:
-	uint32_t m_amongusImage;
-	uint32_t m_playerTex;
+	LocalPlayer m_localPlayer;
 };

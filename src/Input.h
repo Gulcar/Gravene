@@ -2,6 +2,7 @@
 
 #include <bitset>
 #include <glm/vec2.hpp>
+#include <GLFW/glfw3.h>
 
 class Input
 {

@@ -1,6 +1,7 @@
 #include "Text.h"
 
 #include "Renderer.h"
+#include <fmt/core.h>
 
 void Text::Init(const std::string& fontFile, glm::vec2 filePixelSize, glm::vec2 charPixelSize)
 {
@@ -43,6 +44,19 @@ void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered
 		Renderer::DrawPartial(m_fontTexture, currentPos, actualSize, { xOffset, yOffset }, m_charPixelSize, m_filePixelSize, 0.0f, color);
 		currentPos.x += actualSize.x;
 	}
+}
+
+void Text::WriteFps(float deltaTime)
+{
+	static float updateFpsCounter = 0.15f;
+	static std::string fpsString = fmt::format("{}fps", (int)(1.0f / deltaTime));
+	updateFpsCounter -= deltaTime;
+	if (updateFpsCounter < 0.0f)
+	{
+		fpsString = fmt::format("{}fps", (int)(1.0f / deltaTime));
+		updateFpsCounter = 0.15f;
+	}
+	Text::Write(fpsString, { -Renderer::GetRightEdgeWorldPos() + 0.5f, 9.4f }, 0.8f);
 }
 
 uint32_t Text::m_fontTexture;
