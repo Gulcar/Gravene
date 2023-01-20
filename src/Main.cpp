@@ -1,16 +1,6 @@
-#ifdef WIN32
-#include "Windows.h"
-static void EnableTerminalColors()
-{
-	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD dwMode = 0;
-	GetConsoleMode(hOut, &dwMode);
-	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-	SetConsoleMode(hOut, dwMode);
-}
-#endif
-
 #include <fmt/core.h>
+#include "Network.h"
+#include "Utils.h"
 #include <GLFW/glfw3.h>
 #include "Renderer.h"
 #include "Text.h"
@@ -23,10 +13,7 @@ static void EnableTerminalColors()
 int main()
 {
 	fmt::print("pozdravljen svet\n");
-
-#ifdef WIN32
-	EnableTerminalColors();
-#endif
+	Utils::EnableTerminalColors();
 
 	Renderer::Init();
 	Text::Init("resources/bitmap_font.png", { 1024, 576 }, { 64, 96 });
@@ -35,6 +22,8 @@ int main()
 	SceneManager::AssignScene<MenuScene>("MenuScene");
 	SceneManager::AssignScene<TestScene>("TestScene");
 	SceneManager::SwitchToScene("GameScene");
+
+	Network::Connect();
 
 	while (!glfwWindowShouldClose(Renderer::GetWindow()))
 	{
@@ -46,5 +35,6 @@ int main()
 		SceneManager::Update();
 	}
 
+	Network::Disconnect();
 	Renderer::Destroy();
 }

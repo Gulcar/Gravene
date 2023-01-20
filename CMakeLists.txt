@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}
 	src/MenuScene.cpp
 	src/LocalPlayer.cpp
 	src/AsioCompile.cpp
+	src/Network.cpp
 	deps/glad-4.3/src/glad.c
 	deps/stb_image/stb_image.cpp
 )
@@ -39,3 +40,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	optimized fmt
 	glfw3
 )
+
+add_subdirectory(src/Server/)
