@@ -3,12 +3,17 @@
 #include <asio.hpp>
 #include <memory>
 #include <vector>
+#include <cstdint>
+#include <glm/vec2.hpp>
 
 class Network
 {
 public:
 	static void Connect();
 	static void Disconnect();
+
+	static void SendHello(std::string msg);
+	static void SendPlayerPosition(glm::vec2 pos, float rot);
 
 private:
 	static void HandleReceivedMessage(asio::error_code ec, size_t bytes);
@@ -19,5 +24,5 @@ private:
 
 	static std::unique_ptr<std::thread> s_thrContext;
 
-	static std::vector<char> s_receiveBuffer;
+	static std::vector<uint8_t> s_receiveBuffer;
 };

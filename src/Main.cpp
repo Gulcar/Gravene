@@ -24,6 +24,7 @@ int main()
 	SceneManager::SwitchToScene("GameScene");
 
 	Network::Connect();
+	Network::SendHello("hello from main");
 
 	while (!glfwWindowShouldClose(Renderer::GetWindow()))
 	{
