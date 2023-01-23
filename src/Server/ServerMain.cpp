@@ -52,7 +52,14 @@ private:
 			
 			m_socket.async_read_some(asio::buffer(g_receiveBuffer), std::bind(&Connection::HandleMessageReceived, this, std::placeholders::_1, std::placeholders::_2));
 		}
-		else fmt::print(fg(fmt::color::red), "Error receiving message: {}\n", ec.message());
+		else if (ec == asio::error::eof || ec == asio::error::connection_reset)
+		{
+			fmt::print("A player has disconnected.\n");
+		}
+		else
+		{
+			fmt::print(fg(fmt::color::red), "Error receiving message: {}\n", ec.message());
+		}
 	}
 
 private:

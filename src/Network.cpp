@@ -34,27 +34,41 @@ void Network::Disconnect()
 
 void Network::SendHello(std::string msg)
 {
-	msg = "  " + msg + '\0';
+	try
+	{
+		msg = "  " + msg + '\0';
 
-	NetMessage type = NetMessage::Hello;
+		NetMessage type = NetMessage::Hello;
 
-	memcpy(msg.data(), &type, 2);
+		memcpy(msg.data(), &type, 2);
 
-	//s_socket.async_write_some(asio::buffer(msg), HandleSendMessage);
-	s_socket.write_some(asio::buffer(msg));
+		//s_socket.async_write_some(asio::buffer(msg), HandleSendMessage);
+		s_socket.write_some(asio::buffer(msg));
+	}
+	catch (std::exception& e)
+	{
+		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+	}
 }
 
 void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 {
-	uint8_t data[2 + 8 + 4];
-	
-	NetMessage type = NetMessage::PlayerPosition;
+	try
+	{
+		uint8_t data[2 + 8 + 4];
 
-	memcpy(&data[0], &type, 2);
-	memcpy(&data[2], &pos, 8);
-	memcpy(&data[10], &rot, 4);
+		NetMessage type = NetMessage::PlayerPosition;
 
-	s_socket.write_some(asio::buffer(data, sizeof(data)));
+		memcpy(&data[0], &type, 2);
+		memcpy(&data[2], &pos, 8);
+		memcpy(&data[10], &rot, 4);
+
+		s_socket.write_some(asio::buffer(data, sizeof(data)));
+	}
+	catch (std::exception& e)
+	{
+		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+	}
 }
 
 void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
