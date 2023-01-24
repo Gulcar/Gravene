@@ -2,7 +2,7 @@
 
 #include <asio.hpp>
 #include <memory>
-#include <vector>
+#include <array>
 #include <cstdint>
 #include <glm/vec2.hpp>
 
@@ -24,5 +24,5 @@ private:
 
 	static std::unique_ptr<std::thread> s_thrContext;
 
-	static std::vector<uint8_t> s_receiveBuffer;
+	static std::array<uint8_t, 256> s_receiveBuffer;
 };

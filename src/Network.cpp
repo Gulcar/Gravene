@@ -84,4 +84,4 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 asio::io_context Network::s_ioContext;
 asio::ip::tcp::socket Network::s_socket(s_ioContext);
 std::unique_ptr<std::thread> Network::s_thrContext;
-std::vector<uint8_t> Network::s_receiveBuffer(256);
+std::array<uint8_t, 256> Network::s_receiveBuffer;

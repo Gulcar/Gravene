@@ -7,10 +7,12 @@
 #include <functional>
 #include "NetCommon.h"
 #include <glm/vec2.hpp>
+#include <array>
+#include <memory>
 
-std::vector<uint8_t> g_receiveBuffer(256);
+std::array<uint8_t, 256> g_receiveBuffer;
 
-class Connection
+class Connection : public std::enable_shared_from_this<Connection>
 {
 public:
 	Connection(asio::ip::tcp::socket&& socket)
@@ -67,7 +69,7 @@ private:
 };
 
 asio::ip::tcp::acceptor* g_acceptor;
-std::vector<Connection> g_connections;
+std::vector<std::shared_ptr<Connection>> g_connections;
 
 void AcceptHandler(const asio::error_code& ec, asio::ip::tcp::socket peer)
 {
@@ -82,7 +84,7 @@ void AcceptHandler(const asio::error_code& ec, asio::ip::tcp::socket peer)
 			else fmt::print(fg(fmt::color::red), "async_write_some error: {}\n", ec.message());
 		});
 
-		g_connections.emplace_back(std::move(peer));
+		g_connections.emplace_back(std::make_shared<Connection>(std::move(peer)));
 	}
 	else
 	{
