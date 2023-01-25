@@ -1,5 +1,6 @@
 #include <fmt/core.h>
 #include <fmt/color.h>
+#include <fmt/chrono.h>
 #include <asio.hpp>
 #include <iostream>
 #include <vector>
@@ -19,6 +20,11 @@ public:
 		: m_socket(std::move(socket)) 
 	{
 		m_socket.async_read_some(asio::buffer(g_receiveBuffer), std::bind(&Connection::HandleMessageReceived, this, std::placeholders::_1, std::placeholders::_2));
+	}
+
+	inline bool IsConnected() const
+	{
+		return m_isConnected;
 	}
 
 private:
@@ -57,6 +63,7 @@ private:
 		else if (ec == asio::error::eof || ec == asio::error::connection_reset)
 		{
 			fmt::print("A player has disconnected.\n");
+			m_isConnected = false;
 		}
 		else
 		{
@@ -66,57 +73,97 @@ private:
 
 private:
 	asio::ip::tcp::socket m_socket;
+	bool m_isConnected = true;
 };
 
-asio::ip::tcp::acceptor* g_acceptor;
-std::vector<std::shared_ptr<Connection>> g_connections;
-
-void AcceptHandler(const asio::error_code& ec, asio::ip::tcp::socket peer)
+class Server
 {
-	if (!ec)
+public:
+	Server(uint16_t port)
+		: m_endpoint(asio::ip::tcp::v4(), port),
+		  m_acceptor(m_ioContext, m_endpoint)
 	{
-		fmt::print("Received a connection: ");
-		std::cout << peer.remote_endpoint() << "\n";
 
-		const static std::string message = "pozdravljen prek tcp!";
-		peer.async_write_some(asio::buffer(message), [](const asio::error_code& ec, size_t bytesTransfered) {
-			if (!ec) fmt::print("Transfered {} bytes\n", bytesTransfered);
-			else fmt::print(fg(fmt::color::red), "async_write_some error: {}\n", ec.message());
+	}
+
+	void Start()
+	{
+		AsyncAccept();
+		m_ioContext.run();
+	}
+
+	void Update()
+	{
+		for (int i = 0; i < m_connections.size(); i++)
+		{
+			if (m_connections[i]->IsConnected() == false)
+			{
+				m_connections.erase(m_connections.begin() + i);
+				i--;
+			}
+		}
+	}
+
+private:
+	void AsyncAccept()
+	{
+		m_acceptor.async_accept([&](const asio::error_code& ec, asio::ip::tcp::socket peer)
+		{
+			if (!ec)
+			{
+				fmt::print("Received a connection: ");
+				std::cout << peer.remote_endpoint() << "\n";
+
+				const static std::string message = "pozdravljen prek tcp!";
+				peer.async_write_some(asio::buffer(message), [](const asio::error_code& ec, size_t bytesTransfered) {
+					if (!ec) fmt::print("Transfered {} bytes\n", bytesTransfered);
+					else fmt::print(fg(fmt::color::red), "async_write_some error: {}\n", ec.message());
+					});
+
+				m_connections.emplace_back(std::make_shared<Connection>(std::move(peer)));
+			}
+			else
+			{
+				fmt::print(fg(fmt::color::red), "Error when accepting a connection!\n{}\n", ec.message());
+			}
+
+			AsyncAccept();
+
 		});
-
-		g_connections.emplace_back(std::make_shared<Connection>(std::move(peer)));
-	}
-	else
-	{
-		fmt::print(fg(fmt::color::red), "Error when accepting a connection!\n{}\n", ec.message());
 	}
 
-	g_acceptor->async_accept(AcceptHandler);
-}
+private:
+	asio::io_context m_ioContext;
+	asio::ip::tcp::endpoint m_endpoint;
+	asio::ip::tcp::acceptor m_acceptor;
+
+	std::vector<std::shared_ptr<Connection>> m_connections;
+};
 
 int main()
 {
-	const int PORT = 7766;
+	const uint16_t PORT = 7766;
 	
 	fmt::print("Starting Server ...\n");
 	Utils::EnableTerminalColors();
 
 	try
 	{
-		asio::io_context ioContext;
-
-		asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), PORT);
-
-		asio::ip::tcp::acceptor acceptor(ioContext, endpoint);
-		g_acceptor = &acceptor;
-
-		acceptor.async_accept(AcceptHandler);
+		Server server(PORT);
 
 		fmt::print("Server Started!\n");
-		fmt::print("Listening on ");
-		std::cout << acceptor.local_endpoint() << "\n";
+		fmt::print("Listening on port {}\n", PORT);
 
-		ioContext.run();
+		std::thread contextThr([&]() { server.Start(); });
+
+		Utils::FpsLimiter fpsLimiter(14);
+
+		while (true)
+		{
+			fpsLimiter.NewFrame();
+
+			server.Update();
+		}
 	}
 	catch (std::exception& e)
 	{
