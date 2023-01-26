@@ -25,4 +25,6 @@ private:
 	static std::unique_ptr<std::thread> s_thrContext;
 
 	static std::array<uint8_t, 256> s_receiveBuffer;
+
+	static uint16_t s_clientId;
 };

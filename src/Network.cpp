@@ -75,7 +75,33 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 {
 	if (!ec)
 	{
-		fmt::print("Received: {}\n", (char*)s_receiveBuffer.data());
+		//fmt::print("Received: {}\n", (char*)s_receiveBuffer.data());
+		NetMessage type;
+		memcpy(&type, &s_receiveBuffer[0], 2);
+
+		switch (type)
+		{
+		case NetMessage::Hello:
+		{
+			fmt::print("Received: {}\n", (char*)(s_receiveBuffer.data() + 2));
+			break;
+		}
+		case NetMessage::ClientId:
+		{
+			memcpy(&s_clientId, s_receiveBuffer.data() + 2, 2);
+			fmt::print("ClientId: {}\n", s_clientId);
+			break;
+		}
+		case NetMessage::AllPlayersPosition:
+		{
+			fmt::print("Received all players position\n");
+			break;
+		}
+		default:
+			fmt::print(fg(fmt::color::red), "Received invalid net message type: {}\n", (int)type);
+		}
+
+
 		s_socket.async_read_some(asio::buffer(s_receiveBuffer), HandleReceivedMessage);
 	}
 	else fmt::print(fg(fmt::color::red), "Error receiving message: {}\n", ec.message());
@@ -85,3 +111,4 @@ asio::io_context Network::s_ioContext;
 asio::ip::tcp::socket Network::s_socket(s_ioContext);
 std::unique_ptr<std::thread> Network::s_thrContext;
 std::array<uint8_t, 256> Network::s_receiveBuffer;
+uint16_t Network::s_clientId;

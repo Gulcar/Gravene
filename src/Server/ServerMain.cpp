@@ -11,6 +11,18 @@
 #include <array>
 #include <memory>
 
+uint16_t GetNewId()
+{
+	static uint16_t id = 1;
+	return id++;
+}
+
+struct ClientData
+{
+	glm::vec2 position = { 0.0f, 0.0f };
+	float rotation = 0.0f;
+};
+
 std::array<uint8_t, 256> g_receiveBuffer;
 
 class Connection : public std::enable_shared_from_this<Connection>
@@ -19,12 +31,37 @@ public:
 	Connection(asio::ip::tcp::socket&& socket)
 		: m_socket(std::move(socket)) 
 	{
+		ClientId = GetNewId();
+
+		static std::string msg = "  pozdravljen!\0";
+		NetMessage type = NetMessage::Hello;
+		memcpy(&msg[0], &type, 2);
+		Send(asio::buffer(msg));
+
+		uint8_t idData[2 + 2];
+		type = NetMessage::ClientId;
+		memcpy(&idData[0], &type, 2);
+		memcpy(&idData[2], &ClientId, 2);
+		Send(asio::buffer(idData, sizeof(idData)));
+
 		m_socket.async_read_some(asio::buffer(g_receiveBuffer), std::bind(&Connection::HandleMessageReceived, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	inline bool IsConnected() const
 	{
 		return m_isConnected;
+	}
+
+	void Send(asio::const_buffer data)
+	{
+		try
+		{
+			m_socket.write_some(data);
+		}
+		catch (std::exception& e)
+		{
+			fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+		}
 	}
 
 private:
@@ -44,14 +81,9 @@ private:
 			}
 			case NetMessage::PlayerPosition:
 			{
-				glm::vec2 pos;
-				memcpy(&pos, g_receiveBuffer.data() + 2, 8);
-
-				float rot;
-				memcpy(&rot, g_receiveBuffer.data() + 10, 4);
-
-				fmt::print("Received player position: {{ {}, {} }}, rot: {}\n", pos.x, pos.y, rot);
-
+				memcpy(&Data.position, g_receiveBuffer.data() + 2, 8);
+				memcpy(&Data.rotation, g_receiveBuffer.data() + 10, 4);
+				//fmt::print("Received player position: {{ {}, {} }}, rot: {}\n", Data.position.x, Data.position.y, Data.rotation);
 				break;
 			}
 			default:
@@ -74,6 +106,10 @@ private:
 private:
 	asio::ip::tcp::socket m_socket;
 	bool m_isConnected = true;
+
+public:
+	ClientData Data;
+	uint16_t ClientId;
 };
 
 class Server
@@ -113,12 +149,6 @@ private:
 			{
 				fmt::print("Received a connection: ");
 				std::cout << peer.remote_endpoint() << "\n";
-
-				const static std::string message = "pozdravljen prek tcp!";
-				peer.async_write_some(asio::buffer(message), [](const asio::error_code& ec, size_t bytesTransfered) {
-					if (!ec) fmt::print("Transfered {} bytes\n", bytesTransfered);
-					else fmt::print(fg(fmt::color::red), "async_write_some error: {}\n", ec.message());
-					});
 
 				m_connections.emplace_back(std::make_shared<Connection>(std::move(peer)));
 			}
