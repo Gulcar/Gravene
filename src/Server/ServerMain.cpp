@@ -19,6 +19,7 @@ uint16_t GetNewId()
 
 struct ClientData
 {
+	uint32_t id;
 	glm::vec2 position = { 0.0f, 0.0f };
 	float rotation = 0.0f;
 };
@@ -31,7 +32,7 @@ public:
 	Connection(asio::ip::tcp::socket&& socket)
 		: m_socket(std::move(socket)) 
 	{
-		ClientId = GetNewId();
+		Data.id = GetNewId();
 
 		static std::string msg = "  pozdravljen!\0";
 		NetMessage type = NetMessage::Hello;
@@ -41,7 +42,7 @@ public:
 		uint8_t idData[2 + 2];
 		type = NetMessage::ClientId;
 		memcpy(&idData[0], &type, 2);
-		memcpy(&idData[2], &ClientId, 2);
+		memcpy(&idData[2], &Data.id, 2);
 		Send(asio::buffer(idData, sizeof(idData)));
 
 		m_socket.async_read_some(asio::buffer(g_receiveBuffer), std::bind(&Connection::HandleMessageReceived, this, std::placeholders::_1, std::placeholders::_2));
@@ -109,7 +110,6 @@ private:
 
 public:
 	ClientData Data;
-	uint16_t ClientId;
 };
 
 class Server
@@ -130,13 +130,38 @@ public:
 
 	void Update()
 	{
+		if (m_connections.size() == 0)
+			return;
+
+		static std::vector<uint8_t> allPlayerPositions;
+		allPlayerPositions.resize(2 + 2 + (m_connections.size() * 16));
+
+		NetMessage type = NetMessage::AllPlayersPosition;
+		memcpy(&allPlayerPositions[0], &type, 2);
+		uint16_t size = (uint16_t)m_connections.size();
+		memcpy(&allPlayerPositions[2], &size, 2);
+
+		// Maks je bil tukaj
+
+		for (int i = 0; i < m_connections.size(); i++)
+		{
+			uint8_t* dest = &allPlayerPositions[2 + 2 + i * 16];
+			memcpy(dest, &m_connections[i]->Data, 16);
+		}
+
+		asio::const_buffer allPlayerPositionsBuffer = asio::buffer(allPlayerPositions);
+
+
 		for (int i = 0; i < m_connections.size(); i++)
 		{
 			if (m_connections[i]->IsConnected() == false)
 			{
 				m_connections.erase(m_connections.begin() + i);
 				i--;
+				continue;
 			}
+
+			m_connections[i]->Send(allPlayerPositionsBuffer);
 		}
 	}
 

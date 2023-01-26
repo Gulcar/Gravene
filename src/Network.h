@@ -6,6 +6,13 @@
 #include <cstdint>
 #include <glm/vec2.hpp>
 
+struct RemoteClientData
+{
+	uint32_t id;
+	glm::vec2 position;
+	float rotation;
+};
+
 class Network
 {
 public:
@@ -15,8 +22,13 @@ public:
 	static void SendHello(std::string msg);
 	static void SendPlayerPosition(glm::vec2 pos, float rot);
 
+	static inline uint16_t GetLocalClientId() { return s_clientId; }
+
 private:
 	static void HandleReceivedMessage(asio::error_code ec, size_t bytes);
+
+public:
+	static std::vector<RemoteClientData> RemoteClients;
 
 private:
 	static asio::io_context s_ioContext;

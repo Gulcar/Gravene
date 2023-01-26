@@ -94,7 +94,18 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 		}
 		case NetMessage::AllPlayersPosition:
 		{
-			fmt::print("Received all players position\n");
+			uint16_t size;
+			memcpy(&size, &s_receiveBuffer[2], 2);
+
+			RemoteClients.resize(size);
+			memcpy(&RemoteClients[0], &s_receiveBuffer[4], size * 16);
+
+			//fmt::print("Received {} remote clients\n", size);
+			//for (const auto& d : RemoteClients)
+			//{
+			//    fmt::print("id: {}, pos: ({}, {}) rot: {}\n", d.id, d.position.x, d.position.y, d.rotation);
+			//}
+
 			break;
 		}
 		default:
@@ -107,6 +118,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 	else fmt::print(fg(fmt::color::red), "Error receiving message: {}\n", ec.message());
 }
 
+std::vector<RemoteClientData> Network::RemoteClients;
 asio::io_context Network::s_ioContext;
 asio::ip::tcp::socket Network::s_socket(s_ioContext);
 std::unique_ptr<std::thread> Network::s_thrContext;

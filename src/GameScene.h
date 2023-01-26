@@ -2,6 +2,7 @@
 
 #include "SceneManager.h"
 #include "LocalPlayer.h"
+#include <cstdint>
 
 class GameScene : public Scene
 {
@@ -13,4 +14,5 @@ public:
 
 private:
 	LocalPlayer m_localPlayer;
+	uint32_t m_playerTexture;
 };
