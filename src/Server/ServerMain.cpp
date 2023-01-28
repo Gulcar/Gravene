@@ -24,8 +24,6 @@ struct ClientData
 	float rotation = 0.0f;
 };
 
-std::array<uint8_t, 256> g_receiveBuffer;
-
 class Connection : public std::enable_shared_from_this<Connection>
 {
 public:
@@ -45,7 +43,7 @@ public:
 		memcpy(&idData[2], &Data.id, 2);
 		Send(asio::buffer(idData, sizeof(idData)));
 
-		m_socket.async_read_some(asio::buffer(g_receiveBuffer), std::bind(&Connection::HandleMessageReceived, this, std::placeholders::_1, std::placeholders::_2));
+		m_socket.async_read_some(asio::buffer(m_receiveBuffer), std::bind(&Connection::HandleMessageReceived, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	inline bool IsConnected() const
@@ -71,27 +69,27 @@ private:
 		if (!ec)
 		{
 			NetMessage type;
-			memcpy(&type, g_receiveBuffer.data(), 2);
+			memcpy(&type, m_receiveBuffer.data(), 2);
 
 			switch (type)
 			{
 			case NetMessage::Hello:
 			{
-				fmt::print("Received: {}\n", (char*)(g_receiveBuffer.data() + 2));
+				fmt::print("Received: {}\n", (char*)(m_receiveBuffer.data() + 2));
 				break;
 			}
 			case NetMessage::PlayerPosition:
 			{
-				memcpy(&Data.position, g_receiveBuffer.data() + 2, 8);
-				memcpy(&Data.rotation, g_receiveBuffer.data() + 10, 4);
-				//fmt::print("Received player position: {{ {}, {} }}, rot: {}\n", Data.position.x, Data.position.y, Data.rotation);
+				memcpy(&Data.position, m_receiveBuffer.data() + 2, 8);
+				memcpy(&Data.rotation, m_receiveBuffer.data() + 10, 4);
+				//fmt::print("Received player {} position: {{ {}, {} }}, rot: {}\n", Data.id, Data.position.x, Data.position.y, Data.rotation);
 				break;
 			}
 			default:
 				fmt::print(fg(fmt::color::red), "Received invalid net message type: {}\n", (int)type);
 			}
 			
-			m_socket.async_read_some(asio::buffer(g_receiveBuffer), std::bind(&Connection::HandleMessageReceived, this, std::placeholders::_1, std::placeholders::_2));
+			m_socket.async_read_some(asio::buffer(m_receiveBuffer), std::bind(&Connection::HandleMessageReceived, this, std::placeholders::_1, std::placeholders::_2));
 		}
 		else if (ec == asio::error::eof || ec == asio::error::connection_reset)
 		{
@@ -107,6 +105,7 @@ private:
 private:
 	asio::ip::tcp::socket m_socket;
 	bool m_isConnected = true;
+	std::array<uint8_t, 256> m_receiveBuffer;
 
 public:
 	ClientData Data;
@@ -143,10 +142,14 @@ public:
 
 		// Maks je bil tukaj
 
+		//fmt::print("sending all positions:\n");
+
 		for (int i = 0; i < m_connections.size(); i++)
 		{
 			uint8_t* dest = &allPlayerPositions[2 + 2 + i * 16];
 			memcpy(dest, &m_connections[i]->Data, 16);
+
+			//fmt::print("id: {}, pos: ({}, {}), rot: {}\n", m_connections[i]->Data.id, m_connections[i]->Data.position.x, m_connections[i]->Data.position.y, m_connections[i]->Data.rotation);
 		}
 
 		asio::const_buffer allPlayerPositionsBuffer = asio::buffer(allPlayerPositions);

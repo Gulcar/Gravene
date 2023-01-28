@@ -26,8 +26,7 @@ void GameScene::Draw(float deltaTime)
 	for (const auto& c : Network::RemoteClients)
 	{
 		if (c.id != Network::GetLocalClientId())
-			Renderer::Draw(m_playerTexture, c.position, { 3.0f, 3.0f }, c.rotation, { 1.0f, 0.2f, 0.2f });
-			//Renderer::Draw(m_playerTexture, c.position, { 3.0f, 3.0f }, c.rotation, { 0.1f, 0.1f, 1.0f });
+			Renderer::Draw(m_playerTexture, c.position, { 3.0f, 3.0f }, c.rotation, { 0.1f, 0.1f, 1.0f });
 	}
 
 	Text::WriteFps(deltaTime);
