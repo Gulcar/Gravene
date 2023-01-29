@@ -1,7 +1,6 @@
 #include "GameScene.h"
 
 #include "Renderer.h"
-#include "GLFW/glfw3.h"
 #include "Text.h"
 #include <fmt/core.h>
 #include "Input.h"
@@ -23,7 +22,17 @@ void GameScene::Draw(float deltaTime)
 {
 	Renderer::NewFrame();
 
-	Renderer::Draw(m_starsTexture, { 0.0f, 0.0f }, glm::vec2(16.0f, 9.0f) * 2.0f);
+	const static glm::vec2 starsSize = glm::vec2(16.0f, 9.0f) * 2.0f;
+	const static glm::vec3 starsColor = { 0.95f, 0.95f, 0.95f };
+	Renderer::Draw(m_starsTexture, { 0.0f, 0.0f }, starsSize, 0.0f, starsColor);
+	Renderer::Draw(m_starsTexture, { starsSize.x, 0.0f }, starsSize, 0.0f, starsColor);
+	Renderer::Draw(m_starsTexture, { -starsSize.x, 0.0f }, starsSize, 0.0f, starsColor);
+	Renderer::Draw(m_starsTexture, { 0.0f, starsSize.y }, starsSize, 0.0f, starsColor);
+	Renderer::Draw(m_starsTexture, { 0.0f, -starsSize.y }, starsSize, 0.0f, starsColor);
+	Renderer::Draw(m_starsTexture, { starsSize.x, starsSize.y }, starsSize, 0.0f, starsColor);
+	Renderer::Draw(m_starsTexture, { -starsSize.x, starsSize.y }, starsSize, 0.0f, starsColor);
+	Renderer::Draw(m_starsTexture, { starsSize.x, -starsSize.y }, starsSize, 0.0f, starsColor);
+	Renderer::Draw(m_starsTexture, { -starsSize.x, -starsSize.y }, starsSize, 0.0f, starsColor);
 
 	m_localPlayer.Draw();
 

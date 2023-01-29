@@ -2,6 +2,8 @@
 
 #include "Renderer.h"
 #include "Input.h"
+#include <glm/gtx/compatibility.hpp>
+#include <fmt/core.h>
 
 LocalPlayer::LocalPlayer()
 {
@@ -30,6 +32,12 @@ void LocalPlayer::Update(float deltaTime)
 	if (move.x != 0.0f || move.y != 0.0f)
 		move = glm::normalize(move);
 
+	static glm::vec2 prevMove = { 0.0f, 0.0f };
+	if (move.x == 0.0f && move.y == 0.0f)
+		move = prevMove * 0.05f;
+	else
+		prevMove = move;
+
 	if (m_timeSinceDash < m_dashTime)
 		Position += move * deltaTime * m_dashSpeed;
 	else
@@ -40,7 +48,7 @@ void LocalPlayer::Update(float deltaTime)
 	if (m_timeSinceDash > m_dashTime + m_dashCooldown && Input::GetKeyDown(GLFW_KEY_SPACE))
 		m_timeSinceDash = 0.0f;
 
-	Renderer::SetCameraPos(Position);
+	Renderer::SetCameraPos(glm::lerp(this->Position, mousePos, 0.1f));
 }
 
 void LocalPlayer::Draw()

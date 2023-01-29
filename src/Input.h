@@ -3,6 +3,9 @@
 #include <bitset>
 #include <glm/vec2.hpp>
 #include <GLFW/glfw3.h>
+#ifdef WIN32
+#undef APIENTRY
+#endif
 
 class Input
 {
