@@ -39,6 +39,8 @@ void LocalPlayer::Update(float deltaTime)
 
 	if (m_timeSinceDash > m_dashTime + m_dashCooldown && Input::GetKeyDown(GLFW_KEY_SPACE))
 		m_timeSinceDash = 0.0f;
+
+	Renderer::SetCameraPos(Position);
 }
 
 void LocalPlayer::Draw()

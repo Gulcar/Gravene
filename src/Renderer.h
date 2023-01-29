@@ -20,15 +20,16 @@ public:
 
 	static void NewFrame();
 
-	static inline struct GLFWwindow* GetWindow() { return m_window; }
-	static inline int GetWindowWidth() { return m_windowWidth; }
-	static inline int GetWindowHeight() { return m_windowHeight; }
+	inline static struct GLFWwindow* GetWindow() { return m_window; }
+	inline static int GetWindowWidth() { return m_windowWidth; }
+	inline static int GetWindowHeight() { return m_windowHeight; }
 
 	static void CheckGlErrors();
 
-	static void CreateProjectionMat();
-
 	static float GetRightEdgeWorldPos();
+
+	inline static void SetCameraPos(const glm::vec2& pos) { m_cameraPos = pos; CreateViewMat(); }
+	inline static glm::vec2 GetCameraPos() { return m_cameraPos; }
 
 	static void Destroy();
 
@@ -39,6 +40,9 @@ private:
 
 	static void CreateRectBuffers();
 	static void CreatePartialRectBuffers();
+
+	static void CreateProjectionMat();
+	static void CreateViewMat();
 
 	static void GlfwFramebufferSizeCallback(struct GLFWwindow* window, int width, int height);
 	static void GlfwErrorCallback(int errorCode, const char* desc);
@@ -58,7 +62,10 @@ private:
 	static uint32_t m_partialRectEbo;
 
 	static glm::mat4 m_projection;
+	static glm::mat4 m_view;
 
 	static int m_windowWidth;
 	static int m_windowHeight;
+
+	static glm::vec2 m_cameraPos;
 };

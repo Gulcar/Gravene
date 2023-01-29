@@ -13,6 +13,6 @@ enum class NetMessage : uint16_t
 	// from server: uint16_t id
 	ClientId,
 
-	// TODO
+	// uint16_t size, { uint32_t id, vec2 pos, float rot } * size
 	AllPlayersPosition,
 };

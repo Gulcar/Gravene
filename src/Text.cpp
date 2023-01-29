@@ -10,7 +10,7 @@ void Text::Init(const std::string& fontFile, glm::vec2 filePixelSize, glm::vec2 
 	m_charPixelSize = charPixelSize;
 }
 
-void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered, glm::vec3 color)
+void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered, bool worldSpace, glm::vec3 color)
 {
 	glm::vec2 actualSize = { size * m_charPixelSize.x / m_charPixelSize.y, size };
 
@@ -20,6 +20,9 @@ void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered
 	}
 
 	glm::vec2 currentPos = pos;
+
+	if (worldSpace == false)
+		currentPos += Renderer::GetCameraPos();
 
 	for (int i = 0; i < text.length(); i++)
 	{
@@ -41,7 +44,7 @@ void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered
 		int yOffset = (xOffset / (int)m_filePixelSize.x) * m_charPixelSize.y;
 		xOffset %= (int)m_filePixelSize.x;
 
-		Renderer::DrawPartial(m_fontTexture, currentPos, actualSize, { xOffset, yOffset }, m_charPixelSize, m_filePixelSize, 0.0f, color);
+		Renderer::DrawPartial(m_fontTexture, currentPos, actualSize, {xOffset, yOffset}, m_charPixelSize, m_filePixelSize, 0.0f, color);
 		currentPos.x += actualSize.x;
 	}
 }

@@ -67,7 +67,11 @@ void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 	}
 	catch (std::exception& e)
 	{
-		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+		static bool printed = false;
+		if (!printed) {
+			fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+			printed = true;
+		}
 	}
 }
 

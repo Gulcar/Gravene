@@ -10,6 +10,7 @@
 void GameScene::Start()
 {
 	m_playerTexture = Renderer::LoadTexture("resources/player.png");
+	m_starsTexture = Renderer::LoadTexture("resources/stars.jpg");
 }
 
 void GameScene::Update(float deltaTime)
@@ -22,11 +23,14 @@ void GameScene::Draw(float deltaTime)
 {
 	Renderer::NewFrame();
 
+	Renderer::Draw(m_starsTexture, { 0.0f, 0.0f }, glm::vec2(16.0f, 9.0f) * 2.0f);
+
 	m_localPlayer.Draw();
+
 	for (const auto& c : Network::RemoteClients)
 	{
 		if (c.id != Network::GetLocalClientId())
-			Renderer::Draw(m_playerTexture, c.position, { 3.0f, 3.0f }, c.rotation, { 0.1f, 0.1f, 1.0f });
+			Renderer::Draw(m_playerTexture, c.position, { 2.0f, 2.0f }, c.rotation, { 0.1f, 0.1f, 1.0f });
 	}
 
 	Text::WriteFps(deltaTime);

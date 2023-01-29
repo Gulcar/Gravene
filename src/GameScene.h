@@ -15,4 +15,5 @@ public:
 private:
 	LocalPlayer m_localPlayer;
 	uint32_t m_playerTexture;
+	uint32_t m_starsTexture;
 };

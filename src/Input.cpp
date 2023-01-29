@@ -69,6 +69,8 @@ glm::vec2 Input::GetMouseWorldPos()
 	pos.y = -pos.y;
 	pos.y = pos.y / (float)Renderer::GetWindowHeight() * 20.0f;
 
+	pos += Renderer::GetCameraPos();
+
 	return pos;
 }
 
