@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
 	src/LocalPlayer.cpp
 	src/AsioCompile.cpp
 	src/Network.cpp
+	src/UI.cpp
 	deps/glad-4.3/src/glad.c
 	deps/stb_image/stb_image.cpp
 )

@@ -21,10 +21,10 @@ int main()
 	SceneManager::AssignScene<GameScene>("GameScene");
 	SceneManager::AssignScene<MenuScene>("MenuScene");
 	SceneManager::AssignScene<TestScene>("TestScene");
-	SceneManager::SwitchToScene("GameScene");
+	SceneManager::SwitchToScene("MenuScene");
 
-	Network::Connect();
-	Network::SendHello("hello from main");
+	//Network::Connect();
+	//Network::SendHello("hello from main");
 
 	while (!glfwWindowShouldClose(Renderer::GetWindow()))
 	{

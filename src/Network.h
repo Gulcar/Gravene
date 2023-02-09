@@ -1,7 +1,6 @@
 #pragma once
 
 #include <asio.hpp>
-#include <memory>
 #include <array>
 #include <cstdint>
 #include <glm/vec2.hpp>
@@ -34,7 +33,7 @@ private:
 	static asio::io_context s_ioContext;
 	static asio::ip::tcp::socket s_socket;
 
-	static std::unique_ptr<std::thread> s_thrContext;
+	static std::thread* s_thrContext;
 
 	static std::array<uint8_t, 256> s_receiveBuffer;
 

@@ -23,13 +23,16 @@ void Network::Connect()
 		else fmt::print(fg(fmt::color::red), "Error connecting to the server: {}\n", ec.message());
 	});
 
-	s_thrContext = std::make_unique<std::thread>([&]() { s_ioContext.run(); });
+	s_thrContext = new std::thread([&]() { s_ioContext.run(); });
 }
 
 void Network::Disconnect()
 {
-	s_ioContext.stop();
-	s_thrContext->join();
+	if (s_thrContext != nullptr)
+	{
+		s_ioContext.stop();
+		s_thrContext->join();
+	}
 }
 
 void Network::SendHello(std::string msg)
@@ -125,6 +128,6 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 std::vector<RemoteClientData> Network::RemoteClients;
 asio::io_context Network::s_ioContext;
 asio::ip::tcp::socket Network::s_socket(s_ioContext);
-std::unique_ptr<std::thread> Network::s_thrContext;
+std::thread* Network::s_thrContext = nullptr;
 std::array<uint8_t, 256> Network::s_receiveBuffer;
 uint16_t Network::s_clientId;

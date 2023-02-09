@@ -16,7 +16,7 @@ void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered
 
 	if (centered)
 	{
-		pos.x -= actualSize.x * text.length() / 2.0f;
+		pos.x -= actualSize.x * (text.length() - 1) / 2.0f;
 	}
 
 	glm::vec2 currentPos = pos;
@@ -31,7 +31,7 @@ void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered
 		if (character == '\n')
 		{
 			currentPos.x = pos.x;
-			currentPos.x += actualSize.x;
+			currentPos.y -= actualSize.y;
 			continue;
 		}
 		if (character == ' ')
