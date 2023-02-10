@@ -85,7 +85,12 @@ void UI::InputField::Update()
 	}
 
 	if (m_isActive && Input::GetKeyDown(GLFW_KEY_BACKSPACE) && m_text.length() > 0)
-		m_text.pop_back();
+	{
+		if (Input::GetKey(GLFW_KEY_LEFT_CONTROL))
+			m_text = "";
+		else
+			m_text.pop_back();
+	}
 }
 
 void UI::InputField::Draw()
@@ -96,6 +101,7 @@ void UI::InputField::Draw()
 		Renderer::Draw(m_texture, m_pos, m_size, 0.0f, glm::vec3(0.2f));
 	else
 		Renderer::Draw(m_texture, m_pos, m_size, 0.0f, glm::vec3(0.15f));
+
 	Text::Write(m_text, m_pos, m_size.y * 0.8f, true);
 }
 

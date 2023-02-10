@@ -45,6 +45,7 @@ public:
 	~InputField();
 	void Update() override;
 	void Draw() override;
+	std::string& GetInput() { return m_text; }
 
 private:
 	static void GlfwCharCallback(struct GLFWwindow* window, unsigned int codepoint);

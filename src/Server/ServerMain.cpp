@@ -28,17 +28,17 @@ class Connection : public std::enable_shared_from_this<Connection>
 {
 public:
 	Connection(asio::ip::tcp::socket&& socket)
-		: m_socket(std::move(socket)) 
+		: m_socket(std::move(socket))
 	{
 		Data.id = GetNewId();
 
-		static std::string msg = "  pozdravljen!\0";
+		/*static std::string msg = "  pozdravljen!\0";
 		NetMessage type = NetMessage::Hello;
 		memcpy(&msg[0], &type, 2);
-		Send(asio::buffer(msg));
+		Send(asio::buffer(msg));*/
 
 		uint8_t idData[2 + 2];
-		type = NetMessage::ClientId;
+		NetMessage type = NetMessage::ClientId;
 		memcpy(&idData[0], &type, 2);
 		memcpy(&idData[2], &Data.id, 2);
 		Send(asio::buffer(idData, sizeof(idData)));

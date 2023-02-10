@@ -47,5 +47,5 @@ void GameScene::Draw(float deltaTime)
 
 void GameScene::End()
 {
-
+	Network::Disconnect();
 }

@@ -6,24 +6,31 @@
 #include <thread>
 #include "Server/NetCommon.h"
 
-void Network::Connect()
+void Network::Connect(std::string_view ip)
 {
-	asio::ip::tcp::endpoint endpoint(asio::ip::make_address_v4("127.0.0.1"), 7766);
+	try
+	{
+		asio::ip::tcp::endpoint endpoint(asio::ip::make_address_v4(ip), 7766);
 
-	s_socket.async_connect(endpoint, [](const asio::error_code& ec) {
+		s_socket.async_connect(endpoint, [](const asio::error_code& ec) {
 
-		if (!ec)
-		{
-			fmt::print("Connected to the server!\n");
-			s_socket.async_read_some(asio::buffer(s_receiveBuffer), HandleReceivedMessage);
+			if (!ec)
+			{
+				fmt::print("Connected to the server!\n");
+				s_socket.async_read_some(asio::buffer(s_receiveBuffer), HandleReceivedMessage);
 
-			Network::SendHello("pozdravljen to je client!");
-			Network::SendPlayerPosition({ 1.0f, 3.0f }, 45.0f);
-		}
-		else fmt::print(fg(fmt::color::red), "Error connecting to the server: {}\n", ec.message());
-	});
+				Network::SendHello("pozdravljen to je client!");
+				Network::SendPlayerPosition({ 1.0f, 3.0f }, 45.0f);
+			}
+			else fmt::print(fg(fmt::color::red), "Error connecting to the server: {}\n", ec.message());
+			});
 
-	s_thrContext = new std::thread([&]() { s_ioContext.run(); });
+		s_thrContext = new std::thread([&]() { s_ioContext.run(); });
+	}
+	catch (std::exception& e)
+	{
+		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+	}
 }
 
 void Network::Disconnect()

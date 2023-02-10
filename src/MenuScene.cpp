@@ -2,6 +2,7 @@
 
 #include "Renderer.h"
 #include "Text.h"
+#include "Network.h"
 
 void MenuScene::Start()
 {
@@ -13,6 +14,7 @@ void MenuScene::Start()
 	m_playerNameInput.SetPosAndSize({ 0.0f, 1.5f }, { 10.0f, 1.4f });
 
 	m_serverIpInput.SetPosAndSize( { 0.0f, -1.6}, {10.0f, 1.4f} );
+	m_serverIpInput.GetInput() = "127.0.0.1";
 }
 
 void MenuScene::Update(float deltaTime)
@@ -20,6 +22,12 @@ void MenuScene::Update(float deltaTime)
 	m_playBtn.Update();
 	m_playerNameInput.Update();
 	m_serverIpInput.Update();
+
+	if (m_playBtn.Clicked())
+	{
+		Network::Connect(m_serverIpInput.GetInput());
+		SceneManager::SwitchToScene("GameScene");
+	}
 }
 
 void MenuScene::Draw(float deltaTime)

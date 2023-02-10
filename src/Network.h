@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <glm/vec2.hpp>
+#include <string_view>
 
 struct RemoteClientData
 {
@@ -15,7 +16,7 @@ struct RemoteClientData
 class Network
 {
 public:
-	static void Connect();
+	static void Connect(std::string_view ip);
 	static void Disconnect();
 
 	static void SendHello(std::string msg);
