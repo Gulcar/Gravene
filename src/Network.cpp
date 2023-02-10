@@ -85,6 +85,25 @@ void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 	}
 }
 
+void Network::SendPlayerName(std::string_view name)
+{
+	try
+	{
+		std::string msg = "    " + std::string(name) + '\0';
+
+		NetMessage type = NetMessage::PlayerName;
+
+		memcpy(&msg[0], &type, 2);
+		memcpy(&msg[2], &s_clientId, 2);
+
+		s_socket.write_some(asio::buffer(msg));
+	}
+	catch (std::exception& e)
+	{
+		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+	}
+}
+
 void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 {
 	if (!ec)

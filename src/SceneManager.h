@@ -28,6 +28,8 @@ public:
 		s_scenes.insert({ sceneName, std::make_unique<SceneClass>() });
 	}
 
+	inline static Scene* GetScene(const std::string& sceneName) { return s_scenes[sceneName].get(); }
+
 private:
 	static std::unordered_map<std::string, std::unique_ptr<Scene>> s_scenes;
 	static Scene* s_currentScene;

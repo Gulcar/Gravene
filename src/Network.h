@@ -21,6 +21,7 @@ public:
 
 	static void SendHello(std::string msg);
 	static void SendPlayerPosition(glm::vec2 pos, float rot);
+	static void SendPlayerName(std::string_view name);
 
 	static inline uint16_t GetLocalClientId() { return s_clientId; }
 

@@ -15,4 +15,7 @@ enum class NetMessage : uint16_t
 
 	// uint16_t size, { uint32_t id, vec2 pos, float rot } * size
 	AllPlayersPosition,
+
+	// uint16_t id, string name
+	PlayerName,
 };
