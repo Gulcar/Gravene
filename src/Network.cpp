@@ -109,7 +109,7 @@ void Network::SendPlayerName(std::string_view name)
 		NetMessage type = NetMessage::PlayerName;
 
 		memcpy(&msg[0], &type, 2);
-		memcpy(&msg[2], &s_clientId, 2);
+		//memcpy(&msg[2], &s_clientId, 2);
 
 		s_socket.send(asio::buffer(msg));
 	}
@@ -117,6 +117,19 @@ void Network::SendPlayerName(std::string_view name)
 	{
 		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
 	}
+}
+
+const std::string& Network::GetPlayerNameFromId(uint16_t id)
+{
+	auto it = s_allPlayerNames.find(id);
+
+	if (it != s_allPlayerNames.end())
+	{
+		return it->second;
+	}
+
+	static std::string empty = "";
+	return empty;
 }
 
 void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
@@ -162,6 +175,21 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 
 			break;
 		}
+		case NetMessage::PlayerName:
+		{
+			uint16_t id;
+			std::string name;
+
+			memcpy(&id, &s_receiveBuffer[2], 2);
+
+			size_t len = strlen((char*)&s_receiveBuffer[4]);
+			name.resize(len);
+			memcpy(&name[0], &s_receiveBuffer[4], len + 1);
+
+			fmt::print("Received PlayerName(id: {}): {}\n", id, name);
+			s_allPlayerNames.insert({ id, name });
+			break;
+		}
 		default:
 			fmt::print(fg(fmt::color::red), "Received invalid net message type: {}\n", (int)type);
 		}
@@ -179,3 +207,4 @@ std::thread* Network::s_thrContext = nullptr;
 std::array<uint8_t, 256> Network::s_receiveBuffer;
 uint16_t Network::s_clientId;
 bool Network::s_isConnected = false;
+std::unordered_map<uint16_t, std::string> Network::s_allPlayerNames;

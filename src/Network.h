@@ -6,6 +6,7 @@
 #include <glm/vec2.hpp>
 #include <string_view>
 #include <functional>
+#include <unordered_map>
 
 struct RemoteClientData
 {
@@ -25,6 +26,9 @@ public:
 	static void SendPlayerName(std::string_view name);
 
 	static inline uint16_t GetLocalClientId() { return s_clientId; }
+
+	static inline const std::string& GetLocalPlayerName() { return GetPlayerNameFromId(s_clientId); }
+	static const std::string& GetPlayerNameFromId(uint16_t id);
 
 private:
 	static void HandleReceivedMessage(asio::error_code ec, size_t bytes);
@@ -50,4 +54,6 @@ private:
 	static uint16_t s_clientId;
 
 	static bool s_isConnected;
+
+	static std::unordered_map<uint16_t, std::string> s_allPlayerNames;
 };

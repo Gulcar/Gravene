@@ -36,10 +36,14 @@ void Server::Update()
 
 	asio::const_buffer allPlayerPositionsBuffer = asio::buffer(allPlayerPositions);
 
+	SendToAllConnections(allPlayerPositionsBuffer);
+}
 
-	for (int i = 0; i < m_connections.size(); i++)
+void Server::SendToAllConnections(asio::const_buffer data)
+{
+	for (auto& conn : m_connections)
 	{
-		m_connections[i].Send(allPlayerPositionsBuffer);
+		conn.Send(data);
 	}
 }
 
@@ -63,7 +67,21 @@ void Server::AsyncReceive()
 	m_socket.async_receive_from(asio::buffer(m_receiveBuffer), m_receivingEndpoint, [&](asio::error_code ec, size_t bytes) {
 
 		//fmt::print("received a packet!\n");
-		if (ec) fmt::print(fg(fmt::color::red), "Error: {}\n", ec.message());
+		if (ec == asio::error::connection_refused || ec == asio::error::eof || ec == asio::error::connection_reset)
+		{
+			for (int i = 0; i < m_connections.size(); i++)
+			{
+				if (m_connections[i].Endpoint == m_receivingEndpoint)
+				{
+					fmt::print("A client has disconnected (id: {})\n", m_connections[i].Data.id);
+					m_connections.erase(m_connections.begin() + i);
+					break;
+				}
+			}
+			AsyncReceive();
+			return;
+		}
+		else if (ec) fmt::print(fg(fmt::color::red), "Error: {} ({})\n", ec.message(), ec.value());
 
 		NetMessage type;
 		memcpy(&type, &m_receiveBuffer[0], 2);
@@ -89,6 +107,17 @@ void Server::AsyncReceive()
 			memcpy(&idData[0], &type, 2);
 			memcpy(&idData[2], &conn.Data.id, 2);
 			conn.Send(asio::buffer(idData, sizeof(idData)));
+			
+			for (int i = 0; i < m_connections.size() - 1; i++)
+			{
+				std::string nameMsg = "    " + m_connections[i].PlayerName;
+				type = NetMessage::PlayerName;
+				memcpy(&nameMsg[0], &type, 2);
+				uint16_t id = (uint16_t)m_connections[i].Data.id;
+				memcpy(&nameMsg[2], &id, 2);
+
+				conn.Send(asio::buffer(nameMsg.data(), nameMsg.length() + 1));
+			}
 
 			break;
 		}
@@ -132,6 +161,10 @@ void Server::AsyncReceive()
 			size_t len = strlen((char*)&m_receiveBuffer[4]);
 			conn->PlayerName.resize(len, ' ');
 			memcpy(&conn->PlayerName[0], &m_receiveBuffer[4], len + 1);
+
+			uint16_t id = (uint16_t)conn->Data.id;
+			memcpy(&m_receiveBuffer[2], &id, 2);
+			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + 2 + len + 1));
 
 			fmt::print("Received Player Name: {} (id: {})\n", conn->PlayerName, conn->Data.id);
 			break;

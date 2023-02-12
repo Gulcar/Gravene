@@ -13,7 +13,7 @@ void MenuScene::Start()
 
 	m_playerNameInput.SetPosAndSize({ 0.0f, 1.5f }, { 10.0f, 1.4f });
 
-	m_serverIpInput.SetPosAndSize( { 0.0f, -1.6}, {10.0f, 1.4f} );
+	m_serverIpInput.SetPosAndSize( { 0.0f, -1.6}, { 10.0f, 1.4f } );
 	m_serverIpInput.GetInput() = "127.0.0.1";
 }
 

@@ -109,6 +109,8 @@ void UI::InputField::GlfwCharCallback(GLFWwindow* window, unsigned int codepoint
 {
 	if (s_currentInputField == nullptr) return;
 	if (s_currentInputField->m_isActive == false) return;
+	
+	if (s_currentInputField->m_text.length() > 16) return;
 
 	if (codepoint >= 0 && codepoint <= 128)
 		s_currentInputField->m_text += (char)codepoint;

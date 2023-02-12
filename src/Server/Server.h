@@ -16,6 +16,8 @@ public:
 	void Start();
 	void Update();
 
+	void SendToAllConnections(asio::const_buffer data);
+
 	Connection* FindConnectionFromEndpoint(asio::ip::udp::endpoint endpoint);
 
 	inline asio::ip::udp::socket* GetSocket() { return &m_socket; }
