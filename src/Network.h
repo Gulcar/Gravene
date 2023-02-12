@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <glm/vec2.hpp>
 #include <string_view>
+#include <functional>
 
 struct RemoteClientData
 {
@@ -28,16 +29,25 @@ public:
 private:
 	static void HandleReceivedMessage(asio::error_code ec, size_t bytes);
 
+	template<typename HandlerType>
+	static void TryAgainLater(HandlerType handler)
+	{
+		static asio::steady_timer t(s_ioContext, asio::chrono::milliseconds(50));
+		t.async_wait(handler);
+	}
+
 public:
 	static std::vector<RemoteClientData> RemoteClients;
 
 private:
 	static asio::io_context s_ioContext;
-	static asio::ip::tcp::socket s_socket;
+	static asio::ip::udp::socket s_socket;
 
 	static std::thread* s_thrContext;
 
 	static std::array<uint8_t, 256> s_receiveBuffer;
 
 	static uint16_t s_clientId;
+
+	static bool s_isConnected;
 };

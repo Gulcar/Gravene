@@ -4,6 +4,15 @@
 
 enum class NetMessage : uint16_t
 {
+	// from client: empty
+	NewConnection,
+
+	// from server: empty
+	ApproveConnection,
+
+	// empty
+	TerminateConnection,
+
 	// message string
 	Hello,
 
@@ -13,7 +22,7 @@ enum class NetMessage : uint16_t
 	// from server: uint16_t id
 	ClientId,
 
-	// uint16_t size, { uint32_t id, vec2 pos, float rot } * size
+	// from server: uint16_t size, { uint32_t id, vec2 pos, float rot } * size
 	AllPlayersPosition,
 
 	// uint16_t id, string name

@@ -7,7 +7,7 @@
 
 void Server::Start()
 {
-	AsyncAccept();
+	AsyncReceive();
 	m_ioContext.run();
 }
 
@@ -26,12 +26,10 @@ void Server::Update()
 
 	// Maks je bil tukaj
 
-	//fmt::print("sending all positions:\n");
-
 	for (int i = 0; i < m_connections.size(); i++)
 	{
 		uint8_t* dest = &allPlayerPositions[2 + 2 + i * 16];
-		memcpy(dest, &m_connections[i]->Data, 16);
+		memcpy(dest, &m_connections[i].Data, 16);
 
 		//fmt::print("id: {}, pos: ({}, {}), rot: {}\n", m_connections[i]->Data.id, m_connections[i]->Data.position.x, m_connections[i]->Data.position.y, m_connections[i]->Data.rotation);
 	}
@@ -41,34 +39,108 @@ void Server::Update()
 
 	for (int i = 0; i < m_connections.size(); i++)
 	{
-		if (m_connections[i]->IsConnected() == false)
-		{
-			m_connections.erase(m_connections.begin() + i);
-			i--;
-			continue;
-		}
-
-		m_connections[i]->Send(allPlayerPositionsBuffer);
+		m_connections[i].Send(allPlayerPositionsBuffer);
 	}
 }
 
-void Server::AsyncAccept()
+Connection* Server::FindConnectionFromEndpoint(asio::ip::udp::endpoint endpoint)
 {
-	m_acceptor.async_accept([&](const asio::error_code& ec, asio::ip::tcp::socket peer)
+	for (int i = 0; i < m_connections.size(); i++)
 	{
-		if (!ec)
+		if (m_connections[i].Endpoint == endpoint)
 		{
-			fmt::print("Received a connection: ");
-			std::cout << peer.remote_endpoint() << "\n";
-
-			m_connections.emplace_back(std::make_shared<Connection>(std::move(peer)));
+			return &m_connections[i];
 		}
-		else
+	}
+
+	fmt::print(fg(fmt::color::red), "Failed to find connection from endpoint: ");
+	std::cout << endpoint << "\n";
+	return nullptr;
+}
+
+void Server::AsyncReceive()
+{
+	m_socket.async_receive_from(asio::buffer(m_receiveBuffer), m_receivingEndpoint, [&](asio::error_code ec, size_t bytes) {
+
+		//fmt::print("received a packet!\n");
+		if (ec) fmt::print(fg(fmt::color::red), "Error: {}\n", ec.message());
+
+		NetMessage type;
+		memcpy(&type, &m_receiveBuffer[0], 2);
+
+		switch (type)
 		{
-			fmt::print(fg(fmt::color::red), "Error when accepting a connection!\n{}\n", ec.message());
+		case NetMessage::NewConnection:
+		{
+			Connection& conn = m_connections.emplace_back(m_receivingEndpoint, this);
+			conn.Data.id = GetNewId();
+			fmt::print("NewConnection (id: {})\n", conn.Data.id);
+
+			NetMessage type = NetMessage::ApproveConnection;
+			conn.Send(asio::buffer(&type, sizeof(type)));
+
+			static std::string msg = "  pozdravljen!\0";
+			type = NetMessage::Hello;
+			memcpy(&msg[0], &type, 2);
+			conn.Send(asio::buffer(msg));
+
+			uint8_t idData[2 + 2];
+			type = NetMessage::ClientId;
+			memcpy(&idData[0], &type, 2);
+			memcpy(&idData[2], &conn.Data.id, 2);
+			conn.Send(asio::buffer(idData, sizeof(idData)));
+
+			break;
 		}
 
-		AsyncAccept();
+		case NetMessage::TerminateConnection:
+		{
+			for (int i = 0; i < m_connections.size(); i++)
+			{
+				if (m_connections[i].Endpoint == m_receivingEndpoint)
+				{
+					fmt::print("TerminateConnection (id: {})\n", m_connections[i].Data.id);
+					m_connections.erase(m_connections.begin() + i);
+					break;
+				}
+			}
+			break;
+		}
 
+		case NetMessage::Hello:
+		{
+			fmt::print("Received: {}\n", (char*)m_receiveBuffer.data() + 2);
+			break;
+		}
+
+		case NetMessage::PlayerPosition:
+		{
+			Connection* conn = FindConnectionFromEndpoint(m_receivingEndpoint);
+			if (conn == nullptr) break;
+
+			memcpy(&conn->Data.position, &m_receiveBuffer[2], 12);
+			//fmt::print("PlayerPosition {}: pos: {}, {}, rot: {}\n", conn.Data.id, conn.Data.position.x, conn.Data.position.y, conn.Data.rotation);
+
+			break;
+		}
+
+		case NetMessage::PlayerName:
+		{
+			Connection* conn = FindConnectionFromEndpoint(m_receivingEndpoint);
+			if (conn == nullptr) break;
+			
+			size_t len = strlen((char*)&m_receiveBuffer[4]);
+			conn->PlayerName.resize(len, ' ');
+			memcpy(&conn->PlayerName[0], &m_receiveBuffer[4], len + 1);
+
+			fmt::print("Received Player Name: {} (id: {})\n", conn->PlayerName, conn->Data.id);
+			break;
+		}
+
+		default:
+			fmt::print(fg(fmt::color::red), "Received invalid NetMessage type: {}\n", (int)type);
+		}
+
+		AsyncReceive();
 	});
 }

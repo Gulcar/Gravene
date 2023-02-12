@@ -6,7 +6,11 @@
 #include <array>
 #include <glm/vec2.hpp>
 
-uint16_t GetNewId();
+static uint16_t GetNewId()
+{
+	static uint16_t id = 1;
+	return id++;
+}
 
 struct ClientData
 {
@@ -15,24 +19,22 @@ struct ClientData
 	float rotation = 0.0f;
 };
 
-class Connection : public std::enable_shared_from_this<Connection>
+class Connection
 {
 public:
-	Connection(asio::ip::tcp::socket&& socket);
-
-	inline bool IsConnected() const { return m_isConnected; }
+	Connection(asio::ip::udp::endpoint endpoint, class Server* server)
+		: Endpoint(std::move(endpoint)), m_server(server)
+	{
+	}
 
 	void Send(asio::const_buffer data);
 
 private:
-	void HandleMessageReceived(const asio::error_code& ec, size_t bytes);
-
-private:
-	asio::ip::tcp::socket m_socket;
-	bool m_isConnected = true;
-	std::array<uint8_t, 256> m_receiveBuffer;
+	class Server* m_server;
 
 public:
 	ClientData Data;
 	std::string PlayerName = "";
+
+	asio::ip::udp::endpoint Endpoint;
 };

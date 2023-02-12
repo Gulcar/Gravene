@@ -5,22 +5,25 @@
 #include <fmt/color.h>
 #include <thread>
 #include "Server/NetCommon.h"
+#include "Renderer.h"
+#include "Text.h"
 
 void Network::Connect(std::string_view ip)
 {
 	try
 	{
-		asio::ip::tcp::endpoint endpoint(asio::ip::make_address_v4(ip), 7766);
+		asio::ip::udp::endpoint endpoint(asio::ip::make_address_v4(ip), 7766);
 
 		s_socket.async_connect(endpoint, [](const asio::error_code& ec) {
 
 			if (!ec)
 			{
-				fmt::print("Connected to the server!\n");
-				s_socket.async_read_some(asio::buffer(s_receiveBuffer), HandleReceivedMessage);
+				NetMessage msg = NetMessage::NewConnection;
+				s_socket.send(asio::buffer(&msg, sizeof(msg)));
+
+				s_socket.async_receive(asio::buffer(s_receiveBuffer), HandleReceivedMessage);
 
 				Network::SendHello("pozdravljen to je client!");
-				Network::SendPlayerPosition({ 1.0f, 3.0f }, 45.0f);
 			}
 			else fmt::print(fg(fmt::color::red), "Error connecting to the server: {}\n", ec.message());
 			});
@@ -37,6 +40,9 @@ void Network::Disconnect()
 {
 	if (s_thrContext != nullptr)
 	{
+		NetMessage msg = NetMessage::TerminateConnection;
+		s_socket.send(asio::buffer(&msg, sizeof(msg)));
+
 		s_ioContext.stop();
 		s_thrContext->join();
 	}
@@ -53,7 +59,7 @@ void Network::SendHello(std::string msg)
 		memcpy(msg.data(), &type, 2);
 
 		//s_socket.async_write_some(asio::buffer(msg), HandleSendMessage);
-		s_socket.write_some(asio::buffer(msg));
+		s_socket.send(asio::buffer(msg));
 	}
 	catch (std::exception& e)
 	{
@@ -63,6 +69,9 @@ void Network::SendHello(std::string msg)
 
 void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 {
+	if (s_isConnected == false)
+		return;
+
 	try
 	{
 		uint8_t data[2 + 8 + 4];
@@ -73,7 +82,7 @@ void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 		memcpy(&data[2], &pos, 8);
 		memcpy(&data[10], &rot, 4);
 
-		s_socket.write_some(asio::buffer(data, sizeof(data)));
+		s_socket.send(asio::buffer(data, sizeof(data)));
 	}
 	catch (std::exception& e)
 	{
@@ -87,6 +96,12 @@ void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 
 void Network::SendPlayerName(std::string_view name)
 {
+	if (s_isConnected == false)
+	{
+		TryAgainLater([name](asio::error_code ec) {SendPlayerName(name); });
+		return;
+	}
+
 	try
 	{
 		std::string msg = "    " + std::string(name) + '\0';
@@ -96,7 +111,7 @@ void Network::SendPlayerName(std::string_view name)
 		memcpy(&msg[0], &type, 2);
 		memcpy(&msg[2], &s_clientId, 2);
 
-		s_socket.write_some(asio::buffer(msg));
+		s_socket.send(asio::buffer(msg));
 	}
 	catch (std::exception& e)
 	{
@@ -114,6 +129,12 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 
 		switch (type)
 		{
+		case NetMessage::ApproveConnection:
+		{
+			s_isConnected = true;
+			fmt::print("connected to the server!\n");
+			break;
+		}
 		case NetMessage::Hello:
 		{
 			fmt::print("Received: {}\n", (char*)(s_receiveBuffer.data() + 2));
@@ -146,14 +167,15 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 		}
 
 
-		s_socket.async_read_some(asio::buffer(s_receiveBuffer), HandleReceivedMessage);
+		s_socket.async_receive(asio::buffer(s_receiveBuffer), HandleReceivedMessage);
 	}
 	else fmt::print(fg(fmt::color::red), "Error receiving message: {}\n", ec.message());
 }
 
 std::vector<RemoteClientData> Network::RemoteClients;
 asio::io_context Network::s_ioContext;
-asio::ip::tcp::socket Network::s_socket(s_ioContext);
+asio::ip::udp::socket Network::s_socket(s_ioContext);
 std::thread* Network::s_thrContext = nullptr;
 std::array<uint8_t, 256> Network::s_receiveBuffer;
 uint16_t Network::s_clientId;
+bool Network::s_isConnected = false;
