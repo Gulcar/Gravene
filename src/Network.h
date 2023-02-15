@@ -29,6 +29,8 @@ public:
 
 	static const std::string& GetPlayerNameFromId(uint16_t id);
 
+	static inline uint16_t GetNumOfPlayers() { return s_numOfPlayers; }
+
 private:
 	static void HandleReceivedMessage(asio::error_code ec, size_t bytes);
 
@@ -56,4 +58,6 @@ private:
 	static bool s_isConnected;
 
 	static std::unordered_map<uint16_t, std::string> s_allPlayerNames;
+
+	static uint16_t s_numOfPlayers;
 };

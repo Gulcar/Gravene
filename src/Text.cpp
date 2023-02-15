@@ -49,6 +49,13 @@ void Text::Write(std::string_view text, glm::vec2 pos, float size, bool centered
 	}
 }
 
+void Text::WriteRightAligned(std::string_view text, glm::vec2 pos, float size, bool worldSpace, glm::vec3 color)
+{
+	float charWidth = size * m_charPixelSize.x / m_charPixelSize.y;
+	pos.x -= charWidth * text.length();
+	Write(text, pos, size, false, worldSpace, color);
+}
+
 void Text::WriteFps(float deltaTime)
 {
 	static float updateFpsCounter = 0.15f;

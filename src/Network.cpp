@@ -185,6 +185,11 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 			s_allPlayerNames.insert({ id, name });
 			break;
 		}
+		case NetMessage::NumOfPlayers:
+		{
+			memcpy(&s_numOfPlayers, &s_receiveBuffer[2], 2);
+			break;
+		}
 		default:
 			fmt::print(fg(fmt::color::red), "Received invalid net message type: {}\n", (int)type);
 		}
@@ -204,3 +209,4 @@ std::array<uint8_t, 256> Network::s_receiveBuffer;
 uint16_t Network::s_clientId;
 bool Network::s_isConnected = false;
 std::unordered_map<uint16_t, std::string> Network::s_allPlayerNames;
+uint16_t Network::s_numOfPlayers = 0;

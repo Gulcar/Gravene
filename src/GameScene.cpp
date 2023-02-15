@@ -47,6 +47,7 @@ void GameScene::Draw(float deltaTime)
 	}
 
 	Text::WriteFps(deltaTime);
+	Text::WriteRightAligned(fmt::format("players:{}", Network::GetNumOfPlayers()), {Renderer::GetRightEdgeWorldPos(), 9.4f}, 0.8f);
 }
 
 void GameScene::End()

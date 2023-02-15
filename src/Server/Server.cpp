@@ -47,6 +47,17 @@ void Server::SendToAllConnections(asio::const_buffer data)
 	}
 }
 
+void Server::SendNumOfPlayers()
+{
+	uint8_t data[4];
+	NetMessage type = NetMessage::NumOfPlayers;
+	memcpy(&data[0], &type, 2);
+	uint16_t num = (uint16_t)m_connections.size();
+	memcpy(&data[2], &num, 2);
+
+	SendToAllConnections(asio::buffer(data, 4));
+}
+
 Connection* Server::FindConnectionFromEndpoint(asio::ip::udp::endpoint endpoint)
 {
 	for (int i = 0; i < m_connections.size(); i++)
@@ -78,6 +89,7 @@ void Server::AsyncReceive()
 					break;
 				}
 			}
+			SendNumOfPlayers();
 			AsyncReceive();
 			return;
 		}
@@ -119,6 +131,8 @@ void Server::AsyncReceive()
 				conn.Send(asio::buffer(nameMsg.data(), nameMsg.length() + 1));
 			}
 
+			SendNumOfPlayers();
+
 			break;
 		}
 
@@ -133,6 +147,7 @@ void Server::AsyncReceive()
 					break;
 				}
 			}
+			SendNumOfPlayers();
 			break;
 		}
 

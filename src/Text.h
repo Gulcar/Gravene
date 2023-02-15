@@ -10,6 +10,8 @@ public:
 	static void Init(const std::string& fontFile, glm::vec2 filePixelSize, glm::vec2 charPixelSize);
 	static void Write(std::string_view text, glm::vec2 pos, float size, bool centered = false, bool worldSpace = false, glm::vec3 color = {1.0f, 1.0f, 1.0f});
 
+	static void WriteRightAligned(std::string_view text, glm::vec2 pos, float size, bool worldSpace = false, glm::vec3 color = {1.0f, 1.0f, 1.0f});
+
 	static void WriteFps(float deltaTime);
 
 private:

@@ -48,6 +48,28 @@ void LocalPlayer::Update(float deltaTime)
 	if (m_timeSinceDash > m_dashTime + m_dashCooldown && Input::GetKeyDown(GLFW_KEY_SPACE))
 		m_timeSinceDash = 0.0f;
 
+	// bounds
+	if (Position.x > 48.0f)
+	{
+		Position.x = 48.0f;
+		prevMove.x = -prevMove.x;
+	}
+	else if (Position.x < -48.0f)
+	{
+		Position.x = -48.0f;
+		prevMove.x = -prevMove.x;
+	}
+	if (Position.y > 27.0f)
+	{
+		Position.y = 27.0f;
+		prevMove.y = -prevMove.y;
+	}
+	else if (Position.y < -27.0f)
+	{
+		Position.y = -27.0f;
+		prevMove.y = -prevMove.y;
+	}
+
 	Renderer::SetCameraPos(glm::lerp(this->Position, mousePos, 0.1f));
 }
 

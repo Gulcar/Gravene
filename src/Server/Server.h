@@ -18,6 +18,8 @@ public:
 
 	void SendToAllConnections(asio::const_buffer data);
 
+	void SendNumOfPlayers();
+
 	Connection* FindConnectionFromEndpoint(asio::ip::udp::endpoint endpoint);
 
 	inline asio::ip::udp::socket* GetSocket() { return &m_socket; }

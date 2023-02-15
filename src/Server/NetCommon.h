@@ -27,4 +27,7 @@ enum class NetMessage : uint16_t
 
 	// uint16_t id, string name
 	PlayerName,
+
+	// from server: uint16_t num
+	NumOfPlayers,
 };

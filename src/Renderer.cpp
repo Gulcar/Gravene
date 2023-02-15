@@ -87,15 +87,16 @@ void Renderer::Init()
 
 uint32_t Renderer::LoadTexture(const std::string& filename)
 {
-	if (m_loadedTextures.find(filename) != m_loadedTextures.end())
+	auto it = m_loadedTextures.find(filename);
+	if (it != m_loadedTextures.end())
 	{
 		fmt::print("Returned cached texture: {}\n", filename);
-		return m_loadedTextures[filename];
+		return it->second;
 	}
 
 	int width, height, numOfChannles, numOfChannels;
 	uint8_t* data = stbi_load(filename.c_str(), &width, &height, &numOfChannels, 0);
-	if (!data) data = stbi_load(("../../../" + filename).c_str(), &width, &height, &numOfChannels, 0);
+	if (!data) data = stbi_load(("../../" + filename).c_str(), &width, &height, &numOfChannels, 0);
 	if (!data) data = stbi_load(("../" + filename).c_str(), & width, & height, & numOfChannels, 0);
 
 	uint32_t texture;
