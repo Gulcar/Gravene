@@ -35,7 +35,7 @@ void GameScene::Draw(float deltaTime)
 	Renderer::Draw(m_starsTexture, { -starsSize.x, -starsSize.y }, starsSize, 0.0f, starsColor);
 
 	m_localPlayer.Draw();
-	Text::Write(Network::GetLocalPlayerName(), {m_localPlayer.Position.x, m_localPlayer.Position.y + 1.2f}, 0.75f, true, true);
+	Text::Write(Network::LocalPlayerName, {m_localPlayer.Position.x, m_localPlayer.Position.y + 1.2f}, 0.75f, true, true);
 
 	for (const auto& c : Network::RemoteClients)
 	{

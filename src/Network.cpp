@@ -96,12 +96,6 @@ void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 
 void Network::SendPlayerName(std::string_view name)
 {
-	if (s_isConnected == false)
-	{
-		TryAgainLater([name](asio::error_code ec) {SendPlayerName(name); });
-		return;
-	}
-
 	try
 	{
 		std::string msg = "    " + std::string(name) + '\0';
@@ -146,6 +140,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 		{
 			s_isConnected = true;
 			fmt::print("connected to the server!\n");
+			Network::SendPlayerName(LocalPlayerName);
 			break;
 		}
 		case NetMessage::Hello:
@@ -201,6 +196,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 }
 
 std::vector<RemoteClientData> Network::RemoteClients;
+std::string Network::LocalPlayerName;
 asio::io_context Network::s_ioContext;
 asio::ip::udp::socket Network::s_socket(s_ioContext);
 std::thread* Network::s_thrContext = nullptr;

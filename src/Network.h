@@ -27,7 +27,6 @@ public:
 
 	static inline uint16_t GetLocalClientId() { return s_clientId; }
 
-	static inline const std::string& GetLocalPlayerName() { return GetPlayerNameFromId(s_clientId); }
 	static const std::string& GetPlayerNameFromId(uint16_t id);
 
 private:
@@ -42,6 +41,7 @@ private:
 
 public:
 	static std::vector<RemoteClientData> RemoteClients;
+	static std::string LocalPlayerName;
 
 private:
 	static asio::io_context s_ioContext;
