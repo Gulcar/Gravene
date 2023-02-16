@@ -4,6 +4,7 @@
 #include "Input.h"
 #include <glm/gtx/compatibility.hpp>
 #include <fmt/core.h>
+#include "Network.h"
 
 LocalPlayer::LocalPlayer()
 {
@@ -71,6 +72,12 @@ void LocalPlayer::Update(float deltaTime)
 	}
 
 	Renderer::SetCameraPos(glm::lerp(this->Position, mousePos, 0.1f));
+
+	if (Input::GetMouseButtonDown(0))
+	{
+		glm::vec2 bulletDir = glm::normalize(dir);
+		Network::SendShoot(Position + bulletDir, bulletDir);
+	}
 }
 
 void LocalPlayer::Draw()

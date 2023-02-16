@@ -37,6 +37,13 @@ void Server::Update()
 	asio::const_buffer allPlayerPositionsBuffer = asio::buffer(allPlayerPositions);
 
 	SendToAllConnections(allPlayerPositionsBuffer);
+
+
+	for (auto& bullet : m_bullets)
+	{
+		const float bulletSpeed = 9.0f;
+		bullet.position += bullet.direction * 0.014f * bulletSpeed;
+	}
 }
 
 void Server::SendToAllConnections(asio::const_buffer data)
@@ -133,6 +140,15 @@ void Server::AsyncReceive()
 
 			SendNumOfPlayers();
 
+			for (const auto& bullet : m_bullets)
+			{
+				uint8_t data[2 + 8 + 8 + 2];
+				type = NetMessage::Shoot;
+				memcpy(&data[0], &type, 2);
+				memcpy(&data[2], &bullet, 18);
+				conn.Send(asio::buffer(data, 20));
+			}
+
 			break;
 		}
 
@@ -182,6 +198,15 @@ void Server::AsyncReceive()
 			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + 2 + len + 1));
 
 			fmt::print("Received Player Name: {} (id: {})\n", conn->PlayerName, conn->Data.id);
+			break;
+		}
+
+		case NetMessage::Shoot:
+		{
+			//fmt::print("Shoot");
+			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + 8 + 8 + 2));
+			Bullet* bullet = &m_bullets.emplace_back();
+			memcpy(bullet, &m_receiveBuffer[2], 18);
 			break;
 		}
 

@@ -113,6 +113,25 @@ void Network::SendPlayerName(std::string_view name)
 	}
 }
 
+void Network::SendShoot(glm::vec2 pos, glm::vec2 dir)
+{
+	uint8_t data[2 + 8 + 8 + 2];
+	NetMessage type = NetMessage::Shoot;
+	memcpy(&data[0], &type, 2);
+	memcpy(&data[2], &pos, 8);
+	memcpy(&data[10], &dir, 8);
+	memcpy(&data[18], &s_clientId, 2);
+
+	try
+	{
+		s_socket.send(asio::buffer(data, sizeof(data)));
+	}
+	catch (std::exception& e)
+	{
+		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+	}
+}
+
 const std::string& Network::GetPlayerNameFromId(uint16_t id)
 {
 	auto it = s_allPlayerNames.find(id);
@@ -190,6 +209,12 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 			memcpy(&s_numOfPlayers, &s_receiveBuffer[2], 2);
 			break;
 		}
+		case NetMessage::Shoot:
+		{
+			Bullet* bullet = &Bullets.emplace_back();
+			memcpy(bullet, &s_receiveBuffer[2], 18);
+			break;
+		}
 		default:
 			fmt::print(fg(fmt::color::red), "Received invalid net message type: {}\n", (int)type);
 		}
@@ -202,6 +227,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 
 std::vector<RemoteClientData> Network::RemoteClients;
 std::string Network::LocalPlayerName;
+std::vector<Bullet> Network::Bullets;
 asio::io_context Network::s_ioContext;
 asio::ip::udp::socket Network::s_socket(s_ioContext);
 std::thread* Network::s_thrContext = nullptr;

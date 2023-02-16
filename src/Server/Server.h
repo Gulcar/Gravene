@@ -4,6 +4,13 @@
 #include <vector>
 #include "Connection.h"
 
+struct Bullet
+{
+	glm::vec2 position;
+	glm::vec2 direction;
+	uint16_t ownerId;
+};
+
 class Server
 {
 public:
@@ -33,6 +40,7 @@ private:
 	asio::ip::udp::socket m_socket;
 
 	std::vector<Connection> m_connections;
+	std::vector<Bullet> m_bullets;
 	
 	std::array<uint8_t, 256> m_receiveBuffer;
 

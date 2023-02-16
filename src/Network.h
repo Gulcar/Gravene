@@ -15,6 +15,13 @@ struct RemoteClientData
 	float rotation;
 };
 
+struct Bullet
+{
+	glm::vec2 position;
+	glm::vec2 direction;
+	uint16_t ownerId;
+};
+
 class Network
 {
 public:
@@ -24,6 +31,7 @@ public:
 	static void SendHello(std::string msg);
 	static void SendPlayerPosition(glm::vec2 pos, float rot);
 	static void SendPlayerName(std::string_view name);
+	static void SendShoot(glm::vec2 pos, glm::vec2 dir);
 
 	static inline uint16_t GetLocalClientId() { return s_clientId; }
 
@@ -44,6 +52,7 @@ private:
 public:
 	static std::vector<RemoteClientData> RemoteClients;
 	static std::string LocalPlayerName;
+	static std::vector<Bullet> Bullets;
 
 private:
 	static asio::io_context s_ioContext;

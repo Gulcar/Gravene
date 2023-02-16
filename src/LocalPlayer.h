@@ -17,9 +17,9 @@ public:
 private:
 	uint32_t m_texture;
 
-	float m_moveSpeed = 12.0f;
+	float m_moveSpeed = 9.0f;
 
-	float m_dashSpeed = 70.0f;
+	float m_dashSpeed = 50.0f;
 	float m_dashTime = 0.15f;
 	float m_dashCooldown = 1.0f;
 	float m_timeSinceDash = 10.0f;
