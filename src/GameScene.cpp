@@ -17,6 +17,22 @@ void GameScene::Update(float deltaTime)
 {
 	m_localPlayer.Update(deltaTime);
 	Network::SendPlayerPosition(m_localPlayer.Position, m_localPlayer.Rotation);
+
+	for (auto& bullet : Network::Bullets)
+	{
+		const float bulletSpeed = 9.0f;
+		bullet.position += bullet.direction * deltaTime * bulletSpeed;
+
+		bullet.timeToLive -= deltaTime;
+	}
+
+	if (Network::Bullets.size() > 0)
+	{
+		if (Network::Bullets.front().timeToLive < 0.0f)
+		{
+			Network::Bullets.pop_front();
+		}
+	}
 }
 
 void GameScene::Draw(float deltaTime)
@@ -48,11 +64,7 @@ void GameScene::Draw(float deltaTime)
 	}
 
 	for (auto& bullet : Network::Bullets)
-	{
 		Renderer::Draw(m_pixelTexture, bullet.position, { 0.5f, 0.5f }, 0.0f, { 250.0f / 255.0f, 230.0f / 255.0f, 0.0f });
-		const float bulletSpeed = 9.0f;
-		bullet.position += bullet.direction * deltaTime * bulletSpeed;
-	}
 
 	Text::WriteFps(deltaTime);
 	Text::WriteRightAligned(fmt::format("players:{}", Network::GetNumOfPlayers()), {Renderer::GetRightEdgeWorldPos(), 9.4f}, 0.8f);

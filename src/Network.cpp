@@ -115,12 +115,13 @@ void Network::SendPlayerName(std::string_view name)
 
 void Network::SendShoot(glm::vec2 pos, glm::vec2 dir)
 {
-	uint8_t data[2 + 8 + 8 + 2];
+	uint8_t data[2 + sizeof(Bullet)];
 	NetMessage type = NetMessage::Shoot;
 	memcpy(&data[0], &type, 2);
 	memcpy(&data[2], &pos, 8);
 	memcpy(&data[10], &dir, 8);
 	memcpy(&data[18], &s_clientId, 2);
+	memcpy(&data[22], &s_bulletTimeToLive, 4);
 
 	try
 	{
@@ -212,7 +213,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 		case NetMessage::Shoot:
 		{
 			Bullet* bullet = &Bullets.emplace_back();
-			memcpy(bullet, &s_receiveBuffer[2], 18);
+			memcpy(bullet, &s_receiveBuffer[2], sizeof(Bullet));
 			break;
 		}
 		default:
@@ -227,7 +228,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 
 std::vector<RemoteClientData> Network::RemoteClients;
 std::string Network::LocalPlayerName;
-std::vector<Bullet> Network::Bullets;
+std::deque<Bullet> Network::Bullets;
 asio::io_context Network::s_ioContext;
 asio::ip::udp::socket Network::s_socket(s_ioContext);
 std::thread* Network::s_thrContext = nullptr;

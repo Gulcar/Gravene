@@ -13,6 +13,10 @@ add_executable(${PROJECT_NAME}
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 add_compile_definitions(ASIO_SEPARATE_COMPILATION _WIN32_WINNT=0x0601)
 
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
 	../../deps/fmt-9.1.0/include/
 	../../deps/glm-0.9.9.8/

@@ -31,6 +31,6 @@ enum class NetMessage : uint16_t
 	// from server: uint16_t num
 	NumOfPlayers,
 
-	// vec2 pos, vec2 dir, uint16_t ownerId
+	// vec2 pos, vec2 dir, uint16_t ownerId, float timeToLive
 	Shoot,
 };

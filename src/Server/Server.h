@@ -3,12 +3,14 @@
 #include <asio.hpp>
 #include <vector>
 #include "Connection.h"
+#include <deque>
 
 struct Bullet
 {
 	glm::vec2 position;
 	glm::vec2 direction;
 	uint16_t ownerId;
+	float timeToLive;
 };
 
 class Server
@@ -40,7 +42,7 @@ private:
 	asio::ip::udp::socket m_socket;
 
 	std::vector<Connection> m_connections;
-	std::vector<Bullet> m_bullets;
+	std::deque<Bullet> m_bullets;
 	
 	std::array<uint8_t, 256> m_receiveBuffer;
 

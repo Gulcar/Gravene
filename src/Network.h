@@ -7,6 +7,7 @@
 #include <string_view>
 #include <functional>
 #include <unordered_map>
+#include <deque>
 
 struct RemoteClientData
 {
@@ -20,6 +21,7 @@ struct Bullet
 	glm::vec2 position;
 	glm::vec2 direction;
 	uint16_t ownerId;
+	float timeToLive;
 };
 
 class Network
@@ -52,7 +54,7 @@ private:
 public:
 	static std::vector<RemoteClientData> RemoteClients;
 	static std::string LocalPlayerName;
-	static std::vector<Bullet> Bullets;
+	static std::deque<Bullet> Bullets;
 
 private:
 	static asio::io_context s_ioContext;
@@ -63,10 +65,10 @@ private:
 	static std::array<uint8_t, 256> s_receiveBuffer;
 
 	static uint16_t s_clientId;
-
 	static bool s_isConnected;
 
 	static std::unordered_map<uint16_t, std::string> s_allPlayerNames;
-
 	static uint16_t s_numOfPlayers;
+
+	static inline const float s_bulletTimeToLive = 5.0f;
 };

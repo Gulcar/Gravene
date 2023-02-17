@@ -43,6 +43,16 @@ void Server::Update()
 	{
 		const float bulletSpeed = 9.0f;
 		bullet.position += bullet.direction * 0.014f * bulletSpeed;
+
+		bullet.timeToLive -= 0.014f;
+	}
+
+	if (m_bullets.size() > 0)
+	{
+		if (m_bullets.front().timeToLive < 0.0f)
+		{
+			m_bullets.pop_front();
+		}
 	}
 }
 
@@ -142,11 +152,11 @@ void Server::AsyncReceive()
 
 			for (const auto& bullet : m_bullets)
 			{
-				uint8_t data[2 + 8 + 8 + 2];
+				uint8_t data[2 + sizeof(Bullet)];
 				type = NetMessage::Shoot;
 				memcpy(&data[0], &type, 2);
-				memcpy(&data[2], &bullet, 18);
-				conn.Send(asio::buffer(data, 20));
+				memcpy(&data[2], &bullet, sizeof(Bullet));
+				conn.Send(asio::buffer(data, sizeof(data)));
 			}
 
 			break;
@@ -204,9 +214,9 @@ void Server::AsyncReceive()
 		case NetMessage::Shoot:
 		{
 			//fmt::print("Shoot");
-			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + 8 + 8 + 2));
+			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + sizeof(Bullet)));
 			Bullet* bullet = &m_bullets.emplace_back();
-			memcpy(bullet, &m_receiveBuffer[2], 18);
+			memcpy(bullet, &m_receiveBuffer[2], sizeof(Bullet));
 			break;
 		}
 
