@@ -82,5 +82,5 @@ void LocalPlayer::Update(float deltaTime)
 
 void LocalPlayer::Draw()
 {
-	Renderer::Draw(m_texture, Position, Scale, Rotation, { 1.0f, 0.2f, 0.2f });
+	Renderer::Draw(m_texture, Position, Scale, Rotation, { 0.067f, 0.341f, 0.941f });
 }

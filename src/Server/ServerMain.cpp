@@ -16,7 +16,6 @@ int main()
 		Server server(PORT);
 
 		fmt::print("Server Started!\n");
-		fmt::print("Listening on port {}\n", PORT);
 
 		std::thread contextThr([&]() { server.Start(); });
 

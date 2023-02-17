@@ -17,4 +17,5 @@ private:
 	uint32_t m_playerTexture;
 	uint32_t m_starsTexture;
 	uint32_t m_pixelTexture;
+	uint32_t m_bulletTexture;
 };

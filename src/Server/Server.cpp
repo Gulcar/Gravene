@@ -7,6 +7,8 @@
 
 void Server::Start()
 {
+	PrintLocalIp();
+
 	AsyncReceive();
 	m_ioContext.run();
 }
@@ -52,6 +54,20 @@ void Server::Update()
 		if (m_bullets.front().timeToLive < 0.0f)
 		{
 			m_bullets.pop_front();
+		}
+	}
+}
+
+void Server::PrintLocalIp()
+{
+	asio::ip::tcp::resolver resolver(m_ioContext);
+	auto results = resolver.resolve(asio::ip::host_name(), "");
+	for (auto& res : results)
+	{
+		std::string addr = res.endpoint().address().to_string();
+		if (addr.find("192.") == 0)
+		{
+			fmt::print("Listening on {}:{}\n", addr, m_endpoint.port());
 		}
 	}
 }

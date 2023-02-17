@@ -25,6 +25,8 @@ public:
 	void Start();
 	void Update();
 
+	void PrintLocalIp();
+
 	void SendToAllConnections(asio::const_buffer data);
 
 	void SendNumOfPlayers();

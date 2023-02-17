@@ -45,6 +45,9 @@ void Network::Disconnect()
 
 		s_ioContext.stop();
 		s_thrContext->join();
+
+		delete s_thrContext;
+		s_thrContext = nullptr;
 	}
 }
 

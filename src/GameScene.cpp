@@ -11,6 +11,7 @@ void GameScene::Start()
 	m_playerTexture = Renderer::LoadTexture("resources/player.png");
 	m_starsTexture = Renderer::LoadTexture("resources/stars.jpg");
 	m_pixelTexture = Renderer::LoadTexture("resources/white_pixel.png");
+	m_bulletTexture = Renderer::LoadTexture("resources/bullet.png");
 }
 
 void GameScene::Update(float deltaTime)
@@ -58,13 +59,13 @@ void GameScene::Draw(float deltaTime)
 	{
 		if (c.id != Network::GetLocalClientId())
 		{
-			Renderer::Draw(m_playerTexture, c.position, { 2.0f, 2.0f }, c.rotation, { 0.1f, 0.1f, 1.0f });
+			Renderer::Draw(m_playerTexture, c.position, { 2.0f, 2.0f }, c.rotation, { 0.96f, 0.027f, 0.027f });
 			Text::Write(Network::GetPlayerNameFromId(c.id), {c.position.x, c.position.y + 1.2f}, 0.75f, true, true);
 		}
 	}
 
 	for (auto& bullet : Network::Bullets)
-		Renderer::Draw(m_pixelTexture, bullet.position, { 0.5f, 0.5f }, 0.0f, { 250.0f / 255.0f, 230.0f / 255.0f, 0.0f });
+		Renderer::Draw(m_bulletTexture, bullet.position, { 1.5f, 1.5f }, 0.0f, { 250.0f / 255.0f, 230.0f / 255.0f, 0.0f });
 
 	Text::WriteFps(deltaTime);
 	Text::WriteRightAligned(fmt::format("players:{}", Network::GetNumOfPlayers()), {Renderer::GetRightEdgeWorldPos(), 9.4f}, 0.8f);
