@@ -71,6 +71,9 @@ void Server::UpdateCollisions()
 {
 	for (auto& conn : m_connections)
 	{
+		if (conn.Health == 0)
+			continue;
+
 		for (int i = 0; i < m_bullets.size(); i++)
 		{
 			Bullet& bullet = m_bullets[i];
@@ -91,7 +94,17 @@ void Server::UpdateCollisions()
 				SendToAllConnections(asio::buffer(data, sizeof(data)));
 
 				conn.Health -= 10;
-				if (conn.Health > 100) conn.Health = 0;
+				if (conn.Health > 100 || conn.Health == 0)
+				{
+					conn.Health = 0;
+
+					uint8_t deathData[2 + 2];
+					type = NetMessage::PlayerDied;
+					memcpy(&deathData[0], &type, 2);
+					uint16_t id = (uint16_t)conn.Data.id;
+					memcpy(&deathData[2], &id, 2);
+					SendToAllConnections(asio::buffer(deathData, sizeof(deathData)));
+				}
 				uint8_t healthData[2 + 4];
 				type = NetMessage::UpdateHealth;
 				memcpy(&healthData[0], &type, 2);

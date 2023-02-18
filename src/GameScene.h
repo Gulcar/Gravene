@@ -3,6 +3,8 @@
 #include "SceneManager.h"
 #include "LocalPlayer.h"
 #include <cstdint>
+#include <deque>
+#include "ParticleSystem.h"
 
 class GameScene : public Scene
 {
@@ -11,6 +13,9 @@ public:
 	void Update(float deltaTime) override;
 	void Draw(float deltaTime) override;
 	void End() override;
+
+public:
+	std::deque<ParticleSystem> ParticleSystems;
 
 private:
 	LocalPlayer m_localPlayer;

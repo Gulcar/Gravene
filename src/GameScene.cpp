@@ -16,8 +16,11 @@ void GameScene::Start()
 
 void GameScene::Update(float deltaTime)
 {
-	m_localPlayer.Update(deltaTime);
-	Network::SendPlayerPosition(m_localPlayer.Position, m_localPlayer.Rotation);
+	if (Network::IsAlive(Network::GetLocalClientId()))
+	{
+		m_localPlayer.Update(deltaTime);
+		Network::SendPlayerPosition(m_localPlayer.Position, m_localPlayer.Rotation);
+	}
 
 	for (auto& bullet : Network::Bullets)
 	{
@@ -34,6 +37,11 @@ void GameScene::Update(float deltaTime)
 			Network::Bullets.pop_front();
 		}
 	}
+
+	for (auto& particleSystem : ParticleSystems)
+		particleSystem.Update(deltaTime);
+	if (ParticleSystems.size() > 0 && ParticleSystems.front().IsDone())
+		ParticleSystems.pop_front();
 }
 
 void GameScene::Draw(float deltaTime)
@@ -52,16 +60,19 @@ void GameScene::Draw(float deltaTime)
 	Renderer::Draw(m_starsTexture, { starsSize.x, -starsSize.y }, starsSize, 0.0f, starsColor);
 	Renderer::Draw(m_starsTexture, { -starsSize.x, -starsSize.y }, starsSize, 0.0f, starsColor);
 
-	m_localPlayer.Draw();
-	Text::Write(Network::LocalPlayerName, {m_localPlayer.Position.x, m_localPlayer.Position.y + 1.3f}, 0.75f, true, true);
-	Renderer::Draw(m_pixelTexture, { m_localPlayer.Position.x, m_localPlayer.Position.y - 1.3f }, { 3.0f, 0.25f }, 0.0f, { 0.3f, 0.027f, 0.027f });
-	float healthWidth = (float)Network::GetLocalPlayerHealth() / 100.0f * 3.0f;
-	float healthOffset = (3.0f - healthWidth) / 2.0f;
-	Renderer::Draw(m_pixelTexture, { m_localPlayer.Position.x - healthOffset, m_localPlayer.Position.y - 1.3f }, { healthWidth, 0.25f}, 0.0f, {0.96f, 0.027f, 0.027f});
+	if (Network::IsAlive(Network::GetLocalClientId()))
+	{
+		m_localPlayer.Draw();
+		Text::Write(Network::LocalPlayerName, { m_localPlayer.Position.x, m_localPlayer.Position.y + 1.3f }, 0.75f, true, true);
+		Renderer::Draw(m_pixelTexture, { m_localPlayer.Position.x, m_localPlayer.Position.y - 1.3f }, { 3.0f, 0.25f }, 0.0f, { 0.3f, 0.027f, 0.027f });
+		float healthWidth = (float)Network::GetLocalPlayerHealth() / 100.0f * 3.0f;
+		float healthOffset = (3.0f - healthWidth) / 2.0f;
+		Renderer::Draw(m_pixelTexture, { m_localPlayer.Position.x - healthOffset, m_localPlayer.Position.y - 1.3f }, { healthWidth, 0.25f }, 0.0f, { 0.96f, 0.027f, 0.027f });
+	}
 
 	for (const auto& c : Network::RemoteClients)
 	{
-		if (c.id != Network::GetLocalClientId())
+		if (c.id != Network::GetLocalClientId() && Network::IsAlive(c.id))
 		{
 			Renderer::Draw(m_playerTexture, c.position, { 2.0f, 2.0f }, c.rotation, { 0.96f, 0.027f, 0.027f });
 			Text::Write(Network::GetPlayerNameFromId(c.id), {c.position.x, c.position.y + 1.2f}, 0.75f, true, true);
@@ -70,6 +81,9 @@ void GameScene::Draw(float deltaTime)
 
 	for (auto& bullet : Network::Bullets)
 		Renderer::Draw(m_bulletTexture, bullet.position, { 1.5f, 1.5f }, 0.0f, { 250.0f / 255.0f, 230.0f / 255.0f, 0.0f });
+
+	for (auto& particleSystem : ParticleSystems)
+		particleSystem.Draw();
 
 	Text::WriteFps(deltaTime);
 	Text::WriteRightAligned(fmt::format("players:{}", Network::GetNumOfPlayers()), {Renderer::GetRightEdgeWorldPos(), 9.4f}, 0.8f);

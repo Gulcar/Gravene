@@ -7,6 +7,8 @@
 #include "Server/NetCommon.h"
 #include "Renderer.h"
 #include "Text.h"
+#include "SceneManager.h"
+#include "GameScene.h"
 
 void Network::Connect(std::string_view ip)
 {
@@ -149,6 +151,17 @@ const std::string& Network::GetPlayerNameFromId(uint16_t id)
 	return empty;
 }
 
+bool Network::IsAlive(uint16_t id)
+{
+	for (int i = 0; i < s_deadPlayers.size(); i++)
+	{
+		if (s_deadPlayers[i] == id)
+			return false;
+	}
+
+	return true;
+}
+
 void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 {
 	if (!ec)
@@ -227,6 +240,8 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 			{
 				if (Bullets[i].bulletId == bulletId)
 				{
+					GameScene* scene = (GameScene*)SceneManager::GetScene("GameScene");
+					scene->ParticleSystems.emplace_back(20, Bullets[i].position, glm::vec3(250.0f / 255.0f, 230.0f / 255.0f, 0.0f), 5.0f, 0.15f, 0.5f);
 					Bullets.erase(Bullets.begin() + i);
 					break;
 				}
@@ -236,6 +251,28 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 		case NetMessage::UpdateHealth:
 		{
 			memcpy(&s_localPlayerHealth, &s_receiveBuffer[2], 4);
+			break;
+		}
+		case NetMessage::PlayerDied:
+		{
+			uint16_t id;
+			memcpy(&id, &s_receiveBuffer[2], 2);
+
+			s_deadPlayers.push_back(id);
+
+			for (RemoteClientData client : RemoteClients)
+			{
+				if (client.id == id)
+				{
+					glm::vec3 color = { 0.96f, 0.027f, 0.027f };
+					if (client.id == s_clientId)
+						color = { 0.067f, 0.341f, 0.941f };
+
+					GameScene* scene = (GameScene*)SceneManager::GetScene("GameScene");
+					scene->ParticleSystems.emplace_back(30, client.position, color, 8.0f, 0.5f, 1.0f);
+					break;
+				}
+			}
 			break;
 		}
 		default:
@@ -260,3 +297,4 @@ bool Network::s_isConnected = false;
 uint32_t Network::s_localPlayerHealth = 100;
 std::unordered_map<uint16_t, std::string> Network::s_allPlayerNames;
 uint16_t Network::s_numOfPlayers = 0;
+std::vector<uint16_t> Network::s_deadPlayers;
