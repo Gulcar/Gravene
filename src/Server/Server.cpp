@@ -53,9 +53,7 @@ void Server::UpdateBullets()
 {
 	for (auto& bullet : m_bullets)
 	{
-		const float bulletSpeed = 9.0f;
-		bullet.position += bullet.direction * 0.014f * bulletSpeed;
-
+		bullet.position += bullet.direction * 0.014f * NetCommon::BulletSpeed;
 		bullet.timeToLive -= 0.014f;
 	}
 

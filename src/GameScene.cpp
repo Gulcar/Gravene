@@ -6,6 +6,7 @@
 #include "Input.h"
 #include "Network.h"
 #include <glm/gtc/random.hpp>
+#include "Server/NetCommon.h"
 
 void GameScene::Start()
 {
@@ -27,8 +28,7 @@ void GameScene::Update(float deltaTime)
 
 	for (auto& bullet : Network::Bullets)
 	{
-		const float bulletSpeed = 9.0f;
-		bullet.position += bullet.direction * deltaTime * bulletSpeed;
+		bullet.position += bullet.direction * deltaTime * NetCommon::BulletSpeed;
 
 		bullet.timeToLive -= deltaTime;
 	}

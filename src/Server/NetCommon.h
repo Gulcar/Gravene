@@ -46,3 +46,8 @@ enum class NetMessage : uint16_t
 	// from server: uint16_t clientId
 	PlayerRevived,
 };
+
+namespace NetCommon
+{
+	const float BulletSpeed = 12.0f;
+}
