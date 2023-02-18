@@ -53,7 +53,11 @@ void GameScene::Draw(float deltaTime)
 	Renderer::Draw(m_starsTexture, { -starsSize.x, -starsSize.y }, starsSize, 0.0f, starsColor);
 
 	m_localPlayer.Draw();
-	Text::Write(Network::LocalPlayerName, {m_localPlayer.Position.x, m_localPlayer.Position.y + 1.2f}, 0.75f, true, true);
+	Text::Write(Network::LocalPlayerName, {m_localPlayer.Position.x, m_localPlayer.Position.y + 1.3f}, 0.75f, true, true);
+	Renderer::Draw(m_pixelTexture, { m_localPlayer.Position.x, m_localPlayer.Position.y - 1.3f }, { 3.0f, 0.25f }, 0.0f, { 0.3f, 0.027f, 0.027f });
+	float healthWidth = (float)Network::GetLocalPlayerHealth() / 100.0f * 3.0f;
+	float healthOffset = (3.0f - healthWidth) / 2.0f;
+	Renderer::Draw(m_pixelTexture, { m_localPlayer.Position.x - healthOffset, m_localPlayer.Position.y - 1.3f }, { healthWidth, 0.25f}, 0.0f, {0.96f, 0.027f, 0.027f});
 
 	for (const auto& c : Network::RemoteClients)
 	{

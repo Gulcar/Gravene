@@ -15,6 +15,13 @@ void Server::Start()
 
 void Server::Update()
 {
+	UpdateClientPositions();
+	UpdateBullets();
+	UpdateCollisions();
+}
+
+void Server::UpdateClientPositions()
+{
 	if (m_connections.size() == 0)
 		return;
 
@@ -39,8 +46,10 @@ void Server::Update()
 	asio::const_buffer allPlayerPositionsBuffer = asio::buffer(allPlayerPositions);
 
 	SendToAllConnections(allPlayerPositionsBuffer);
+}
 
-
+void Server::UpdateBullets()
+{
 	for (auto& bullet : m_bullets)
 	{
 		const float bulletSpeed = 9.0f;
@@ -54,6 +63,44 @@ void Server::Update()
 		if (m_bullets.front().timeToLive < 0.0f)
 		{
 			m_bullets.pop_front();
+		}
+	}
+}
+
+void Server::UpdateCollisions()
+{
+	for (auto& conn : m_connections)
+	{
+		for (int i = 0; i < m_bullets.size(); i++)
+		{
+			Bullet& bullet = m_bullets[i];
+
+			if (conn.Data.id == bullet.ownerId)
+				continue;
+
+			float distSqr = (conn.Data.position.x - bullet.position.x) * (conn.Data.position.x - bullet.position.x)
+				+ (conn.Data.position.y - bullet.position.y) * (conn.Data.position.y - bullet.position.y);
+
+			const float hitDistance = 1.5f;
+			if (distSqr <= hitDistance)
+			{
+				uint8_t data[2 + 4];
+				NetMessage type = NetMessage::DestroyBullet;
+				memcpy(&data[0], &type, 2);
+				memcpy(&data[2], &bullet.bulletId, 4);
+				SendToAllConnections(asio::buffer(data, sizeof(data)));
+
+				conn.Health -= 10;
+				if (conn.Health > 100) conn.Health = 0;
+				uint8_t healthData[2 + 4];
+				type = NetMessage::UpdateHealth;
+				memcpy(&healthData[0], &type, 2);
+				memcpy(&healthData[2], &conn.Health, 4);
+				conn.Send(asio::buffer(healthData, sizeof(healthData)));
+
+				m_bullets.erase(m_bullets.begin() + i);
+				i--;
+			}
 		}
 	}
 }
@@ -230,6 +277,8 @@ void Server::AsyncReceive()
 		case NetMessage::Shoot:
 		{
 			//fmt::print("Shoot");
+			uint32_t newId = Bullet::GetNewId();
+			memcpy(&m_receiveBuffer[2 + offsetof(Bullet, bulletId)], &newId, 4);
 			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + sizeof(Bullet)));
 			Bullet* bullet = &m_bullets.emplace_back();
 			memcpy(bullet, &m_receiveBuffer[2], sizeof(Bullet));

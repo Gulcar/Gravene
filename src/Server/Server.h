@@ -11,6 +11,13 @@ struct Bullet
 	glm::vec2 direction;
 	uint16_t ownerId;
 	float timeToLive;
+	uint32_t bulletId;
+
+	static inline uint32_t GetNewId()
+	{
+		static uint32_t id = 1;
+		return id++;
+	}
 };
 
 class Server
@@ -24,6 +31,10 @@ public:
 
 	void Start();
 	void Update();
+
+	void UpdateClientPositions();
+	void UpdateBullets();
+	void UpdateCollisions();
 
 	void PrintLocalIp();
 

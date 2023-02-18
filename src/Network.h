@@ -22,6 +22,7 @@ struct Bullet
 	glm::vec2 direction;
 	uint16_t ownerId;
 	float timeToLive;
+	uint32_t bulletId;
 };
 
 class Network
@@ -36,9 +37,9 @@ public:
 	static void SendShoot(glm::vec2 pos, glm::vec2 dir);
 
 	static inline uint16_t GetLocalClientId() { return s_clientId; }
+	static inline uint32_t GetLocalPlayerHealth() { return s_localPlayerHealth; }
 
 	static const std::string& GetPlayerNameFromId(uint16_t id);
-
 	static inline uint16_t GetNumOfPlayers() { return s_numOfPlayers; }
 
 private:
@@ -66,6 +67,7 @@ private:
 
 	static uint16_t s_clientId;
 	static bool s_isConnected;
+	static uint32_t s_localPlayerHealth;
 
 	static std::unordered_map<uint16_t, std::string> s_allPlayerNames;
 	static uint16_t s_numOfPlayers;

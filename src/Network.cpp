@@ -219,6 +219,25 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 			memcpy(bullet, &s_receiveBuffer[2], sizeof(Bullet));
 			break;
 		}
+		case NetMessage::DestroyBullet:
+		{
+			uint32_t bulletId;
+			memcpy(&bulletId, &s_receiveBuffer[2], 4);
+			for (int i = 0; i < Bullets.size(); i++)
+			{
+				if (Bullets[i].bulletId == bulletId)
+				{
+					Bullets.erase(Bullets.begin() + i);
+					break;
+				}
+			}
+			break;
+		}
+		case NetMessage::UpdateHealth:
+		{
+			memcpy(&s_localPlayerHealth, &s_receiveBuffer[2], 4);
+			break;
+		}
 		default:
 			fmt::print(fg(fmt::color::red), "Received invalid net message type: {}\n", (int)type);
 		}
@@ -238,5 +257,6 @@ std::thread* Network::s_thrContext = nullptr;
 std::array<uint8_t, 256> Network::s_receiveBuffer;
 uint16_t Network::s_clientId;
 bool Network::s_isConnected = false;
+uint32_t Network::s_localPlayerHealth = 100;
 std::unordered_map<uint16_t, std::string> Network::s_allPlayerNames;
 uint16_t Network::s_numOfPlayers = 0;

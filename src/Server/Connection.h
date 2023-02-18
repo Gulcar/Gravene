@@ -35,6 +35,7 @@ private:
 public:
 	ClientData Data;
 	std::string PlayerName = "";
+	uint32_t Health = 100;
 
 	asio::ip::udp::endpoint Endpoint;
 };
