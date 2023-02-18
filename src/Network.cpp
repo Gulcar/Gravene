@@ -270,9 +270,25 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 
 					GameScene* scene = (GameScene*)SceneManager::GetScene("GameScene");
 					scene->ParticleSystems.emplace_back(30, client.position, color, 8.0f, 0.5f, 1.0f);
+					scene->ParticleSystems.emplace_back(30, client.position, color, 6.0f, 0.5f, 1.0f);
 					break;
 				}
 			}
+			break;
+		}
+		case NetMessage::PlayerRevived:
+		{
+			uint16_t id;
+			memcpy(&id, &s_receiveBuffer[2], 2);
+			s_deadPlayers.erase(std::remove(s_deadPlayers.begin(), s_deadPlayers.end(), id));
+
+			if (id == s_clientId)
+			{
+				GameScene* scene = (GameScene*)SceneManager::GetScene("GameScene");
+				scene->GetLocalPlayer().SetRandPos();
+				s_localPlayerHealth = 100;
+			}
+
 			break;
 		}
 		default:

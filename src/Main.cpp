@@ -15,6 +15,8 @@ int main()
 	fmt::print("pozdravljen svet\n");
 	Utils::EnableTerminalColors();
 
+	srand(time(nullptr));
+
 	Renderer::Init();
 	Text::Init("resources/bitmap_font.png", { 1024, 576 }, { 64, 96 });
 

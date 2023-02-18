@@ -5,6 +5,7 @@
 #include <fmt/core.h>
 #include "Input.h"
 #include "Network.h"
+#include <glm/gtc/random.hpp>
 
 void GameScene::Start()
 {
@@ -12,6 +13,8 @@ void GameScene::Start()
 	m_starsTexture = Renderer::LoadTexture("resources/stars.jpg");
 	m_pixelTexture = Renderer::LoadTexture("resources/white_pixel.png");
 	m_bulletTexture = Renderer::LoadTexture("resources/bullet.png");
+	
+	m_localPlayer.SetRandPos();
 }
 
 void GameScene::Update(float deltaTime)

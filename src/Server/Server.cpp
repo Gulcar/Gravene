@@ -18,6 +18,7 @@ void Server::Update()
 	UpdateClientPositions();
 	UpdateBullets();
 	UpdateCollisions();
+	UpdateReviveTime();
 }
 
 void Server::UpdateClientPositions()
@@ -97,6 +98,8 @@ void Server::UpdateCollisions()
 				if (conn.Health > 100 || conn.Health == 0)
 				{
 					conn.Health = 0;
+					conn.Data.position.y = -10000.0f;
+					conn.ReviveTime = 3.0f;
 
 					uint8_t deathData[2 + 2];
 					type = NetMessage::PlayerDied;
@@ -113,6 +116,28 @@ void Server::UpdateCollisions()
 
 				m_bullets.erase(m_bullets.begin() + i);
 				i--;
+			}
+		}
+	}
+}
+
+void Server::UpdateReviveTime()
+{
+	for (auto& conn : m_connections)
+	{
+		if (conn.Health == 0)
+		{
+			conn.ReviveTime -= 0.014f;
+			if (conn.ReviveTime < 0.0f)
+			{
+				conn.Health = 100;
+				
+				uint8_t data[2 + 2];
+				NetMessage type = NetMessage::PlayerRevived;
+				memcpy(&data[0], &type, 2);
+				uint16_t id = (uint16_t)conn.Data.id;
+				memcpy(&data[2], &id, 2);
+				SendToAllConnections(asio::buffer(data, sizeof(data)));
 			}
 		}
 	}
@@ -263,6 +288,9 @@ void Server::AsyncReceive()
 		{
 			Connection* conn = FindConnectionFromEndpoint(m_receivingEndpoint);
 			if (conn == nullptr) break;
+
+			if (conn->Health == 0)
+				break;
 
 			memcpy(&conn->Data.position, &m_receiveBuffer[2], 12);
 			//fmt::print("PlayerPosition {}: pos: {}, {}, rot: {}\n", conn.Data.id, conn.Data.position.x, conn.Data.position.y, conn.Data.rotation);

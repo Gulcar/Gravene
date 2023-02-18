@@ -42,4 +42,7 @@ enum class NetMessage : uint16_t
 
 	// from server: uint16_t clientId
 	PlayerDied,
+
+	// from server: uint16_t clientId
+	PlayerRevived,
 };

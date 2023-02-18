@@ -10,6 +10,8 @@ public:
 	void Update(float deltaTime);
 	void Draw();
 
+	void SetRandPos();
+
 	glm::vec2 Position = { 0.0f, 0.0f };
 	float Rotation = 0.0f;
 	glm::vec2 Scale = { 2.0f, 2.0f };

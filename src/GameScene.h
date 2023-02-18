@@ -17,6 +17,8 @@ public:
 public:
 	std::deque<ParticleSystem> ParticleSystems;
 
+	inline LocalPlayer& GetLocalPlayer() { return m_localPlayer; }
+
 private:
 	LocalPlayer m_localPlayer;
 	uint32_t m_playerTexture;

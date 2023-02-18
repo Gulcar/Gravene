@@ -36,6 +36,7 @@ public:
 	ClientData Data;
 	std::string PlayerName = "";
 	uint32_t Health = 100;
+	float ReviveTime;
 
 	asio::ip::udp::endpoint Endpoint;
 };

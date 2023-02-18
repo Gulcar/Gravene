@@ -35,6 +35,7 @@ public:
 	void UpdateClientPositions();
 	void UpdateBullets();
 	void UpdateCollisions();
+	void UpdateReviveTime();
 
 	void PrintLocalIp();
 

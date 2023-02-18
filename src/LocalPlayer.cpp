@@ -5,6 +5,7 @@
 #include <glm/gtx/compatibility.hpp>
 #include <fmt/core.h>
 #include "Network.h"
+#include <glm/gtc/random.hpp>
 
 LocalPlayer::LocalPlayer()
 {
@@ -83,4 +84,10 @@ void LocalPlayer::Update(float deltaTime)
 void LocalPlayer::Draw()
 {
 	Renderer::Draw(m_texture, Position, Scale, Rotation, { 0.067f, 0.341f, 0.941f });
+}
+
+void LocalPlayer::SetRandPos()
+{
+	Position.x = rand() % 91 - 45;
+	Position.y = rand() % 51 - 25;
 }
