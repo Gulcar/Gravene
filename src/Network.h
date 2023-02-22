@@ -41,7 +41,11 @@ public:
 
 	static const std::string& GetPlayerNameFromId(uint16_t id);
 	static inline uint16_t GetNumOfPlayers() { return s_numOfPlayers; }
+
 	static inline const std::string& GetKilledByName() { return GetPlayerNameFromId(s_killedById); }
+	static inline float GetKillTime() { return s_killTime; }
+	static inline const std::string& GetKillName() { return GetPlayerNameFromId(s_killedId); }
+	static inline float GetHitTime() { return s_hitTime; }
 
 	static bool IsAlive(uint16_t id);
 
@@ -79,4 +83,7 @@ private:
 
 	static std::vector<uint16_t> s_deadPlayers;
 	static uint16_t s_killedById;
+	static uint16_t s_killedId;
+	static float s_killTime;
+	static float s_hitTime;
 };

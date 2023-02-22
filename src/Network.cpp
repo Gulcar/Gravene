@@ -9,6 +9,7 @@
 #include "Text.h"
 #include "SceneManager.h"
 #include "GameScene.h"
+#include <GLFW/glfw3.h>
 
 void Network::Connect(std::string_view ip)
 {
@@ -236,6 +237,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 		{
 			uint32_t bulletId;
 			memcpy(&bulletId, &s_receiveBuffer[2], 4);
+
 			for (int i = 0; i < Bullets.size(); i++)
 			{
 				if (Bullets[i].bulletId == bulletId)
@@ -246,6 +248,8 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 					break;
 				}
 			}
+
+			s_hitTime = glfwGetTime();
 			break;
 		}
 		case NetMessage::UpdateHealth:
@@ -257,12 +261,19 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 		{
 			uint16_t id;
 			memcpy(&id, &s_receiveBuffer[2], 2);
+			uint16_t killerId;
+			memcpy(&killerId, &s_receiveBuffer[4], 2);
 
 			s_deadPlayers.push_back(id);
 
 			if (s_clientId == id)
 			{
-				memcpy(&s_killedById, &s_receiveBuffer[4], 2);
+				s_killedById = killerId;
+			}
+			else if (s_clientId == killerId)
+			{
+				s_killTime = glfwGetTime();
+				s_killedId = id;
 			}
 
 			for (RemoteClientData& client : RemoteClients)
@@ -320,3 +331,6 @@ std::unordered_map<uint16_t, std::string> Network::s_allPlayerNames;
 uint16_t Network::s_numOfPlayers = 0;
 std::vector<uint16_t> Network::s_deadPlayers;
 uint16_t Network::s_killedById;
+uint16_t Network::s_killedId;
+float Network::s_killTime = -10.0f;
+float Network::s_hitTime = -10.0f;

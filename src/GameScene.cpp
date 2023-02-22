@@ -45,6 +45,21 @@ void GameScene::Update(float deltaTime)
 		particleSystem.Update(deltaTime);
 	if (ParticleSystems.size() > 0 && ParticleSystems.front().IsDone())
 		ParticleSystems.pop_front();
+
+	if (Network::GetKillTime() + 0.25f > glfwGetTime())
+	{
+		glm::vec2 camPos = Renderer::GetCameraPos();
+		camPos.x += glm::linearRand(-0.5f, 0.5f);
+		camPos.y += glm::linearRand(-0.5f, 0.5f);
+		Renderer::SetCameraPos(camPos);
+	}
+	else if (Network::GetHitTime() + 0.1f > glfwGetTime())
+	{
+		glm::vec2 camPos = Renderer::GetCameraPos();
+		camPos.x += glm::linearRand(-0.1f, 0.1f);
+		camPos.y += glm::linearRand(-0.1f, 0.1f);
+		Renderer::SetCameraPos(camPos);
+	}
 }
 
 void GameScene::Draw(float deltaTime)
@@ -95,6 +110,11 @@ void GameScene::Draw(float deltaTime)
 	{
 		Text::Write("You died!", { 0, 0 }, 2.0f, true);
 		Text::Write(fmt::format("Killed by {}", Network::GetKilledByName()), { 0, -2 }, 1.0f, true);
+	}
+
+	if (Network::GetKillTime() + 2.0f > glfwGetTime())
+	{
+		Text::Write(fmt::format("You killed {}!", Network::GetKillName()), { 0, -3 }, 0.9f, true);
 	}
 }
 
