@@ -37,6 +37,9 @@ public:
 	void UpdateCollisions();
 	void UpdateReviveTime();
 
+	void PlayerHit(Connection& hitConn, Bullet& bullet);
+	void PlayerDied(Connection& diedConn, Bullet& bullet);
+
 	void PrintLocalIp();
 
 	void SendToAllConnections(asio::const_buffer data);

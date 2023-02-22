@@ -90,6 +90,12 @@ void GameScene::Draw(float deltaTime)
 
 	Text::WriteFps(deltaTime);
 	Text::WriteRightAligned(fmt::format("players:{}", Network::GetNumOfPlayers()), {Renderer::GetRightEdgeWorldPos(), 9.4f}, 0.8f);
+
+	if (Network::IsAlive(Network::GetLocalClientId()) == false)
+	{
+		Text::Write("You died!", { 0, 0 }, 2.0f, true);
+		Text::Write(fmt::format("Killed by {}", Network::GetKilledByName()), { 0, -2 }, 1.0f, true);
+	}
 }
 
 void GameScene::End()

@@ -260,7 +260,12 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 
 			s_deadPlayers.push_back(id);
 
-			for (RemoteClientData client : RemoteClients)
+			if (s_clientId == id)
+			{
+				memcpy(&s_killedById, &s_receiveBuffer[4], 2);
+			}
+
+			for (RemoteClientData& client : RemoteClients)
 			{
 				if (client.id == id)
 				{
@@ -314,3 +319,4 @@ uint32_t Network::s_localPlayerHealth = 100;
 std::unordered_map<uint16_t, std::string> Network::s_allPlayerNames;
 uint16_t Network::s_numOfPlayers = 0;
 std::vector<uint16_t> Network::s_deadPlayers;
+uint16_t Network::s_killedById;

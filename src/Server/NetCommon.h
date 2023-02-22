@@ -40,7 +40,7 @@ enum class NetMessage : uint16_t
 	// from server: int hp
 	UpdateHealth,
 
-	// from server: uint16_t clientId
+	// from server: uint16_t diedClientId, uint16_t killedByClientId
 	PlayerDied,
 
 	// from server: uint16_t clientId

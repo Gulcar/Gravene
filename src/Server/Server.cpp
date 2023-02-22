@@ -86,31 +86,7 @@ void Server::UpdateCollisions()
 			const float hitDistance = 1.5f;
 			if (distSqr <= hitDistance)
 			{
-				uint8_t data[2 + 4];
-				NetMessage type = NetMessage::DestroyBullet;
-				memcpy(&data[0], &type, 2);
-				memcpy(&data[2], &bullet.bulletId, 4);
-				SendToAllConnections(asio::buffer(data, sizeof(data)));
-
-				conn.Health -= 10;
-				if (conn.Health > 100 || conn.Health == 0)
-				{
-					conn.Health = 0;
-					conn.Data.position.y = -10000.0f;
-					conn.ReviveTime = 3.0f;
-
-					uint8_t deathData[2 + 2];
-					type = NetMessage::PlayerDied;
-					memcpy(&deathData[0], &type, 2);
-					uint16_t id = (uint16_t)conn.Data.id;
-					memcpy(&deathData[2], &id, 2);
-					SendToAllConnections(asio::buffer(deathData, sizeof(deathData)));
-				}
-				uint8_t healthData[2 + 4];
-				type = NetMessage::UpdateHealth;
-				memcpy(&healthData[0], &type, 2);
-				memcpy(&healthData[2], &conn.Health, 4);
-				conn.Send(asio::buffer(healthData, sizeof(healthData)));
+				PlayerHit(conn, bullet);
 
 				m_bullets.erase(m_bullets.begin() + i);
 				i--;
@@ -139,6 +115,41 @@ void Server::UpdateReviveTime()
 			}
 		}
 	}
+}
+
+void Server::PlayerHit(Connection& hitConn, Bullet& bullet)
+{
+	uint8_t data[2 + 4];
+	NetMessage type = NetMessage::DestroyBullet;
+	memcpy(&data[0], &type, 2);
+	memcpy(&data[2], &bullet.bulletId, 4);
+	SendToAllConnections(asio::buffer(data, sizeof(data)));
+
+	hitConn.Health -= 10;
+	if (hitConn.Health > 100 || hitConn.Health == 0)
+	{
+		PlayerDied(hitConn, bullet);
+	}
+	uint8_t healthData[2 + 4];
+	type = NetMessage::UpdateHealth;
+	memcpy(&healthData[0], &type, 2);
+	memcpy(&healthData[2], &hitConn.Health, 4);
+	hitConn.Send(asio::buffer(healthData, sizeof(healthData)));
+}
+
+void Server::PlayerDied(Connection& diedConn, Bullet& bullet)
+{
+	diedConn.Health = 0;
+	diedConn.Data.position.y = -10000.0f;
+	diedConn.ReviveTime = 3.0f;
+
+	uint8_t deathData[2 + 2 + 2];
+	NetMessage type = NetMessage::PlayerDied;
+	memcpy(&deathData[0], &type, 2);
+	uint16_t id = (uint16_t)diedConn.Data.id;
+	memcpy(&deathData[2], &id, 2);
+	memcpy(&deathData[4], &bullet.ownerId, 2);
+	SendToAllConnections(asio::buffer(deathData, sizeof(deathData)));
 }
 
 void Server::PrintLocalIp()
