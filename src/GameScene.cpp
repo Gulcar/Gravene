@@ -14,6 +14,7 @@ void GameScene::Start()
 	m_starsTexture = Renderer::LoadTexture("resources/stars.jpg");
 	m_pixelTexture = Renderer::LoadTexture("resources/white_pixel.png");
 	m_bulletTexture = Renderer::LoadTexture("resources/bullet.png");
+	m_powerUpTexture = Renderer::LoadTexture("resources/power_up.png");
 	
 	m_localPlayer.SetRandPos();
 }
@@ -38,6 +39,24 @@ void GameScene::Update(float deltaTime)
 		if (Network::Bullets.front().timeToLive < 0.0f)
 		{
 			Network::Bullets.pop_front();
+		}
+	}
+
+	for (int i = 0; i < Network::PowerUpPositions.size(); i++)
+	{
+		glm::vec2 p = Network::PowerUpPositions[i];
+		float dist = glm::distance(p, m_localPlayer.Position);
+
+		if (dist < 1.2f)
+		{
+			glm::vec3 color = { 153.0f / 255.0f, 229 / 255.0f, 80.0f / 255.0f };
+			ParticleSystems.emplace_back(15, p, color, 8.0f, 0.3f, 1.0f);
+
+			m_localPlayer.GivePowerup();
+
+			Network::SendPowerUpPickup(Network::PowerUpPositions[i]);
+			Network::PowerUpPositions.erase(Network::PowerUpPositions.begin() + i);
+			i--;
 		}
 	}
 
@@ -96,6 +115,9 @@ void GameScene::Draw(float deltaTime)
 			Text::Write(Network::GetPlayerNameFromId(c.id), {c.position.x, c.position.y + 1.2f}, 0.75f, true, true);
 		}
 	}
+
+	for (auto& powerUpPos : Network::PowerUpPositions)
+		Renderer::Draw(m_powerUpTexture, powerUpPos, { 1.2f, 1.2f });
 
 	for (auto& bullet : Network::Bullets)
 		Renderer::Draw(m_bulletTexture, bullet.position, { 1.5f, 1.5f }, 0.0f, { 250.0f / 255.0f, 230.0f / 255.0f, 0.0f });

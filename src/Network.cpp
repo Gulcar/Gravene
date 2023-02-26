@@ -92,11 +92,7 @@ void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 	}
 	catch (std::exception& e)
 	{
-		static bool printed = false;
-		if (!printed) {
-			fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
-			printed = true;
-		}
+		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
 	}
 }
 
@@ -128,6 +124,23 @@ void Network::SendShoot(glm::vec2 pos, glm::vec2 dir)
 	memcpy(&data[10], &dir, 8);
 	memcpy(&data[18], &s_clientId, 2);
 	memcpy(&data[22], &s_bulletTimeToLive, 4);
+
+	try
+	{
+		s_socket.send(asio::buffer(data, sizeof(data)));
+	}
+	catch (std::exception& e)
+	{
+		fmt::print(fg(fmt::color::red), "Exception: {}\n", e.what());
+	}
+}
+
+void Network::SendPowerUpPickup(glm::ivec2 pos)
+{
+	uint8_t data[2 + sizeof(glm::ivec2)];
+	NetMessage type = NetMessage::DestroyPowerUp;
+	memcpy(&data[0], &type, 2);
+	memcpy(&data[2], &pos, sizeof(glm::ivec2));
 
 	try
 	{
@@ -296,7 +309,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 		{
 			uint16_t id;
 			memcpy(&id, &s_receiveBuffer[2], 2);
-			s_deadPlayers.erase(std::remove(s_deadPlayers.begin(), s_deadPlayers.end(), id));
+			s_deadPlayers.erase(std::remove(s_deadPlayers.begin(), s_deadPlayers.end(), id), s_deadPlayers.end());
 
 			if (id == s_clientId)
 			{
@@ -305,6 +318,20 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 				s_localPlayerHealth = 100;
 			}
 
+			break;
+		}
+		case NetMessage::SpawnPowerUp:
+		{
+			glm::ivec2 pos;
+			memcpy(&pos, &s_receiveBuffer[2], sizeof(pos));
+			PowerUpPositions.push_back(pos);
+			break;
+		}
+		case NetMessage::DestroyPowerUp:
+		{
+			glm::ivec2 pos;
+			memcpy(&pos, &s_receiveBuffer[2], sizeof(pos));
+			PowerUpPositions.erase(std::remove(PowerUpPositions.begin(), PowerUpPositions.end(), pos), PowerUpPositions.end());
 			break;
 		}
 		default:
@@ -320,6 +347,7 @@ void Network::HandleReceivedMessage(asio::error_code ec, size_t bytes)
 std::vector<RemoteClientData> Network::RemoteClients;
 std::string Network::LocalPlayerName;
 std::deque<Bullet> Network::Bullets;
+std::vector<glm::ivec2> Network::PowerUpPositions;
 asio::io_context Network::s_ioContext;
 asio::ip::udp::socket Network::s_socket(s_ioContext);
 std::thread* Network::s_thrContext = nullptr;

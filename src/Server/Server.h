@@ -36,6 +36,9 @@ public:
 	void UpdateBullets();
 	void UpdateCollisions();
 	void UpdateReviveTime();
+	void UpdatePowerUps();
+
+	void SpawnPowerup();
 
 	void PlayerHit(Connection& hitConn, Bullet& bullet);
 	void PlayerDied(Connection& diedConn, Bullet& bullet);
@@ -60,6 +63,11 @@ private:
 
 	std::vector<Connection> m_connections;
 	std::deque<Bullet> m_bullets;
+
+	std::vector<glm::ivec2> m_powerUpPositions;
+	const int m_maxNumOfPowerUps = 10;
+	float m_powerUpSpawnInterval = 25.0f;
+	float m_timeTillPowerUpSpawn = m_powerUpSpawnInterval;
 	
 	std::array<uint8_t, 256> m_receiveBuffer;
 

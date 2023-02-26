@@ -19,6 +19,7 @@ void Server::Update()
 	UpdateBullets();
 	UpdateCollisions();
 	UpdateReviveTime();
+	UpdatePowerUps();
 }
 
 void Server::UpdateClientPositions()
@@ -115,6 +116,36 @@ void Server::UpdateReviveTime()
 			}
 		}
 	}
+}
+
+void Server::UpdatePowerUps()
+{
+	m_timeTillPowerUpSpawn -= 0.014f;
+
+	if (m_timeTillPowerUpSpawn < 0.0f)
+	{
+		if (m_powerUpPositions.size() < m_maxNumOfPowerUps)
+			SpawnPowerup();
+
+		m_timeTillPowerUpSpawn = m_powerUpSpawnInterval;
+	}
+}
+
+void Server::SpawnPowerup()
+{
+	glm::ivec2 pos;
+	pos.x = rand() % 91 - 45;
+	pos.y = rand() % 51 - 25;
+
+	m_powerUpPositions.push_back(pos);
+
+	uint8_t data[2 + sizeof(glm::ivec2)];
+	NetMessage type = NetMessage::SpawnPowerUp;
+	memcpy(&data[0], &type, 2);
+	memcpy(&data[2], &m_powerUpPositions.back(), sizeof(glm::ivec2));
+	SendToAllConnections(asio::buffer(data, sizeof(data)));
+
+	fmt::print("Spawned a new power up\n");
 }
 
 void Server::PlayerHit(Connection& hitConn, Bullet& bullet)
@@ -231,7 +262,7 @@ void Server::AsyncReceive()
 		{
 			Connection& conn = m_connections.emplace_back(m_receivingEndpoint, this);
 			conn.Data.id = GetNewId();
-			fmt::print("NewConnection (id: {})\n", conn.Data.id);
+			fmt::print("NewConnection (id: {}) {}\n", conn.Data.id, conn.Endpoint.address().to_string());
 
 			NetMessage type = NetMessage::ApproveConnection;
 			conn.Send(asio::buffer(&type, sizeof(type)));
@@ -266,6 +297,15 @@ void Server::AsyncReceive()
 				type = NetMessage::Shoot;
 				memcpy(&data[0], &type, 2);
 				memcpy(&data[2], &bullet, sizeof(Bullet));
+				conn.Send(asio::buffer(data, sizeof(data)));
+			}
+
+			for (const auto& powerUpPos : m_powerUpPositions)
+			{
+				uint8_t data[2 + sizeof(glm::ivec2)];
+				type = NetMessage::SpawnPowerUp;
+				memcpy(&data[0], &type, 2);
+				memcpy(&data[2], &powerUpPos, sizeof(glm::ivec2));
 				conn.Send(asio::buffer(data, sizeof(data)));
 			}
 
@@ -332,6 +372,20 @@ void Server::AsyncReceive()
 			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + sizeof(Bullet)));
 			Bullet* bullet = &m_bullets.emplace_back();
 			memcpy(bullet, &m_receiveBuffer[2], sizeof(Bullet));
+			break;
+		}
+
+		case NetMessage::DestroyPowerUp:
+		{
+			glm::ivec2 pos;
+			memcpy(&pos, &m_receiveBuffer[2], sizeof(glm::ivec2));
+
+			m_powerUpPositions.erase(std::remove(m_powerUpPositions.begin(), m_powerUpPositions.end(), pos), m_powerUpPositions.end());
+
+			SendToAllConnections(asio::buffer(m_receiveBuffer, 2 + sizeof(glm::ivec2)));
+
+			fmt::print("Picked up power up\n");
+
 			break;
 		}
 

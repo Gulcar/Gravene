@@ -10,6 +10,7 @@ int main()
 	
 	fmt::print("Starting Server ...\n");
 	Utils::EnableTerminalColors();
+	srand(time(nullptr));
 
 	try
 	{

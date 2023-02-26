@@ -35,6 +35,7 @@ public:
 	static void SendPlayerPosition(glm::vec2 pos, float rot);
 	static void SendPlayerName(std::string_view name);
 	static void SendShoot(glm::vec2 pos, glm::vec2 dir);
+	static void SendPowerUpPickup(glm::ivec2 pos);
 
 	static inline uint16_t GetLocalClientId() { return s_clientId; }
 	static inline uint32_t GetLocalPlayerHealth() { return s_localPlayerHealth; }
@@ -63,6 +64,7 @@ public:
 	static std::vector<RemoteClientData> RemoteClients;
 	static std::string LocalPlayerName;
 	static std::deque<Bullet> Bullets;
+	static std::vector<glm::ivec2> PowerUpPositions;
 
 private:
 	static asio::io_context s_ioContext;

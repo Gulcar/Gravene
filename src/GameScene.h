@@ -25,4 +25,5 @@ private:
 	uint32_t m_starsTexture;
 	uint32_t m_pixelTexture;
 	uint32_t m_bulletTexture;
+	uint32_t m_powerUpTexture;
 };

@@ -45,6 +45,12 @@ enum class NetMessage : uint16_t
 
 	// from server: uint16_t clientId
 	PlayerRevived,
+
+	// from server: int x, int y
+	SpawnPowerUp,
+
+	// int x, int y
+	DestroyPowerUp,
 };
 
 namespace NetCommon

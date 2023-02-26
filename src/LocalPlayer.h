@@ -12,6 +12,8 @@ public:
 
 	void SetRandPos();
 
+	void GivePowerup();
+
 	glm::vec2 Position = { 0.0f, 0.0f };
 	float Rotation = 0.0f;
 	glm::vec2 Scale = { 2.0f, 2.0f };
@@ -25,4 +27,8 @@ private:
 	float m_dashTime = 0.15f;
 	float m_dashCooldown = 1.0f;
 	float m_timeSinceDash = 10.0f;
+	
+	float m_speedPowerUpTime = -1.0f;
+	float m_doubleShootPowerUpTime = -1.0f;
+	float m_tripleShootPowerUpTime = -1.0f;
 };
