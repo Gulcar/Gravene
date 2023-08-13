@@ -1,0 +1,3 @@
+[submodule "deps/GulcarNetworking"]
+	path = deps/GulcarNetworking
+	url = https://github.com/Gulcar/GulcarNetworking

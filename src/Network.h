@@ -8,6 +8,7 @@
 #include <functional>
 #include <unordered_map>
 #include <deque>
+#include <GulcarNet/Client.h>
 
 struct RemoteClientData
 {
@@ -53,13 +54,6 @@ public:
 private:
 	static void HandleReceivedMessage(asio::error_code ec, size_t bytes);
 
-	template<typename HandlerType>
-	static void TryAgainLater(HandlerType handler)
-	{
-		static asio::steady_timer t(s_ioContext, asio::chrono::milliseconds(50));
-		t.async_wait(handler);
-	}
-
 public:
 	static std::vector<RemoteClientData> RemoteClients;
 	static std::string LocalPlayerName;
@@ -88,4 +82,6 @@ private:
 	static uint16_t s_killedId;
 	static float s_killTime;
 	static float s_hitTime;
+
+	inline static Net::Client s_netClient;
 };

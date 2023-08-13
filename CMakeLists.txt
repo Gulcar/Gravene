@@ -41,6 +41,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	debug fmtd
 	optimized fmt
 	glfw3
+	GulcarNetworking
 )
 
 add_subdirectory(src/Server/)
+add_subdirectory(deps/GulcarNetworking/)

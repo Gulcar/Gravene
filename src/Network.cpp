@@ -13,6 +13,8 @@
 
 void Network::Connect(std::string_view ip)
 {
+	s_netClient.Connect(Net::IPAddr(ip, 7766));
+
 	try
 	{
 		asio::ip::udp::endpoint endpoint(asio::ip::make_address_v4(ip), 7766);
