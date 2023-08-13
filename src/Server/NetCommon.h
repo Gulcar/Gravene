@@ -1,15 +1,19 @@
 #pragma once
 
 #include <cstdint>
+#include <glm/vec2.hpp>
 
 enum class NetMessage : uint16_t
 {
+	// [deprecated]
 	// from client: empty
 	NewConnection,
 
+	// [deprecated]
 	// from server: empty
 	ApproveConnection,
 
+	// [deprecated]
 	// empty
 	TerminateConnection,
 
@@ -51,6 +55,33 @@ enum class NetMessage : uint16_t
 
 	// int x, int y
 	DestroyPowerUp,
+};
+
+struct NetPlayerPositionT
+{
+	glm::vec2 pos;
+	float rot;
+};
+
+struct NetPlayerNameT
+{
+	uint16_t id;
+	char name[20];
+};
+
+struct NetShootT
+{
+	glm::vec2 pos;
+	glm::vec2 dir;
+	uint16_t ownerId;
+	float timeToLive;
+	uint32_t bulletId;
+};
+
+struct NetDestroyPowerUpT
+{
+	int x;
+	int y;
 };
 
 namespace NetCommon

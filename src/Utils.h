@@ -4,6 +4,7 @@
 #include <Windows.h>
 #endif
 
+#include <thread>
 #include <chrono>
 
 namespace Utils

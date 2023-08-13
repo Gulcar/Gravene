@@ -1,6 +1,5 @@
 #pragma once
 
-#include <asio.hpp>
 #include <array>
 #include <cstdint>
 #include <glm/vec2.hpp>
@@ -32,7 +31,7 @@ public:
 	static void Connect(std::string_view ip);
 	static void Disconnect();
 
-	static void SendHello(std::string msg);
+	static void SendHello(const std::string& msg);
 	static void SendPlayerPosition(glm::vec2 pos, float rot);
 	static void SendPlayerName(std::string_view name);
 	static void SendShoot(glm::vec2 pos, glm::vec2 dir);
@@ -51,8 +50,10 @@ public:
 
 	static bool IsAlive(uint16_t id);
 
+	static void Process();
+
 private:
-	static void HandleReceivedMessage(asio::error_code ec, size_t bytes);
+	static void HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType);
 
 public:
 	static std::vector<RemoteClientData> RemoteClients;
@@ -61,15 +62,7 @@ public:
 	static std::vector<glm::ivec2> PowerUpPositions;
 
 private:
-	static asio::io_context s_ioContext;
-	static asio::ip::udp::socket s_socket;
-
-	static std::thread* s_thrContext;
-
-	static std::array<uint8_t, 256> s_receiveBuffer;
-
 	static uint16_t s_clientId;
-	static bool s_isConnected;
 	static uint32_t s_localPlayerHealth;
 
 	static std::unordered_map<uint16_t, std::string> s_allPlayerNames;
