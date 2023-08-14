@@ -72,6 +72,12 @@ struct NetDestroyPowerUpT
 	int y;
 };
 
+struct NetPlayerDiedT
+{
+	uint16_t diedClientId;
+	uint16_t killedByClientId;
+};
+
 namespace NetCommon
 {
 	const float BulletSpeed = 12.0f;

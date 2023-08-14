@@ -4,6 +4,7 @@
 #include <string>
 #include <array>
 #include <glm/vec2.hpp>
+#include <GulcarNet/Server.h>
 
 static uint16_t GetNewId()
 {
@@ -21,21 +22,15 @@ struct ClientData
 class Connection
 {
 public:
-	Connection(asio::ip::udp::endpoint endpoint, class Server* server)
-		: Endpoint(std::move(endpoint)), m_server(server)
-	{
-	}
-
-	void Send(asio::const_buffer data);
+	inline Net::IPAddr GetAddr() const { return m_netConn.GetAddr(); }
+	inline Net::Connection& GetNetConn() { return m_netConn; }
 
 private:
-	class Server* m_server;
+	Net::Connection& m_netConn;
 
 public:
 	ClientData Data;
 	std::string PlayerName = "";
 	uint32_t Health = 100;
 	float ReviveTime;
-
-	asio::ip::udp::endpoint Endpoint;
 };

@@ -37,13 +37,9 @@ public:
 	void PlayerHit(Connection& hitConn, Bullet& bullet);
 	void PlayerDied(Connection& diedConn, Bullet& bullet);
 
-	void PrintLocalIp();
-
-	void SendToAllConnections(asio::const_buffer data);
-
 	void SendNumOfPlayers();
 
-	Connection* FindConnectionFromEndpoint(asio::ip::udp::endpoint endpoint);
+	Connection* FindConnectionFromAddr(Net::IPAddr addr);
 
 private:
 	void DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connection& conn);
