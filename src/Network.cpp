@@ -22,6 +22,7 @@ void Network::Connect(std::string_view ip)
 		case Net::Client::Status::Disconnected:
 			fmt::print("connection status: Disconnected\n"); break;
 		case Net::Client::Status::FailedToConnect:
+			// TODO: ce failed to connect vrzi playerja nazaj v menu
 			fmt::print("connection status: FailedToConnect\n"); break;
 		}
 	});
@@ -154,8 +155,8 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 	case NetMessage::Shoot:
 	{
-		Bullet* bullet = &Bullets.emplace_back();
-		memcpy(bullet, data, sizeof(Bullet));
+		NetShootT* bullet = &Bullets.emplace_back();
+		memcpy(bullet, data, sizeof(NetShootT));
 		break;
 	}
 	case NetMessage::DestroyBullet:
@@ -167,7 +168,7 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 			if (Bullets[i].bulletId == bulletId)
 			{
 				GameScene* scene = (GameScene*)SceneManager::GetScene("GameScene");
-				scene->ParticleSystems.emplace_back(20, Bullets[i].position, glm::vec3(250.0f / 255.0f, 230.0f / 255.0f, 0.0f), 5.0f, 0.15f, 0.5f);
+				scene->ParticleSystems.emplace_back(20, Bullets[i].pos, glm::vec3(250.0f / 255.0f, 230.0f / 255.0f, 0.0f), 5.0f, 0.15f, 0.5f);
 				Bullets.erase(Bullets.begin() + i);
 				break;
 			}
@@ -246,7 +247,7 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 
 std::vector<RemoteClientData> Network::RemoteClients;
 std::string Network::LocalPlayerName;
-std::deque<Bullet> Network::Bullets;
+std::deque<NetShootT> Network::Bullets;
 std::vector<glm::ivec2> Network::PowerUpPositions;
 uint16_t Network::s_clientId;
 uint32_t Network::s_localPlayerHealth = 100;

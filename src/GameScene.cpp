@@ -29,7 +29,7 @@ void GameScene::Update(float deltaTime)
 
 	for (auto& bullet : Network::Bullets)
 	{
-		bullet.position += bullet.direction * deltaTime * NetCommon::BulletSpeed;
+		bullet.pos += bullet.dir * deltaTime * NetCommon::BulletSpeed;
 
 		bullet.timeToLive -= deltaTime;
 	}
@@ -120,7 +120,7 @@ void GameScene::Draw(float deltaTime)
 		Renderer::Draw(m_powerUpTexture, powerUpPos, { 1.2f, 1.2f });
 
 	for (auto& bullet : Network::Bullets)
-		Renderer::Draw(m_bulletTexture, bullet.position, { 1.5f, 1.5f }, 0.0f, { 250.0f / 255.0f, 230.0f / 255.0f, 0.0f });
+		Renderer::Draw(m_bulletTexture, bullet.pos, { 1.5f, 1.5f }, 0.0f, { 250.0f / 255.0f, 230.0f / 255.0f, 0.0f });
 
 	for (auto& particleSystem : ParticleSystems)
 		particleSystem.Draw();

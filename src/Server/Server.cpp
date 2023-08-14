@@ -60,7 +60,7 @@ void Server::UpdateBullets()
 {
 	for (auto& bullet : m_bullets)
 	{
-		bullet.position += bullet.direction * 0.014f * NetCommon::BulletSpeed;
+		bullet.pos += bullet.dir * 0.014f * NetCommon::BulletSpeed;
 		bullet.timeToLive -= 0.014f;
 	}
 
@@ -82,13 +82,13 @@ void Server::UpdateCollisions()
 
 		for (int i = 0; i < m_bullets.size(); i++)
 		{
-			Bullet& bullet = m_bullets[i];
+			NetShootT& bullet = m_bullets[i];
 
 			if (conn.Data.id == bullet.ownerId)
 				continue;
 
-			float distSqr = (conn.Data.position.x - bullet.position.x) * (conn.Data.position.x - bullet.position.x)
-				+ (conn.Data.position.y - bullet.position.y) * (conn.Data.position.y - bullet.position.y);
+			float distSqr = (conn.Data.position.x - bullet.pos.x) * (conn.Data.position.x - bullet.pos.x)
+				+ (conn.Data.position.y - bullet.pos.y) * (conn.Data.position.y - bullet.pos.y);
 
 			const float hitDistance = 1.5f;
 			if (distSqr <= hitDistance)
@@ -146,7 +146,7 @@ void Server::SpawnPowerup()
 	fmt::print("Spawned a new power up\n");
 }
 
-void Server::PlayerHit(Connection& hitConn, Bullet& bullet)
+void Server::PlayerHit(Connection& hitConn, NetShootT& bullet)
 {
 	// TODO: mogoce reliable tukaj
 	m_netServer.SendToAll(Net::Buf(bullet.bulletId), (uint16_t)NetMessage::DestroyBullet, Net::Unreliable);
@@ -160,7 +160,7 @@ void Server::PlayerHit(Connection& hitConn, Bullet& bullet)
 	m_netServer.SendTo(Net::Buf(hitConn.Health), (uint16_t)NetMessage::UpdateHealth, Net::Reliable, *hitConn.GetNetConn());
 }
 
-void Server::PlayerDied(Connection& diedConn, Bullet& bullet)
+void Server::PlayerDied(Connection& diedConn, NetShootT& bullet)
 {
 	diedConn.Health = 0;
 	diedConn.Data.position.y = -10000.0f;
@@ -217,6 +217,8 @@ void Server::RemoveConnection(Net::Connection& netConn)
 			break;
 		}
 	}
+
+	SendNumOfPlayers();
 }
 
 void Server::SendNumOfPlayers()
@@ -287,13 +289,13 @@ void Server::DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connec
 
 		NetShootT* t = (NetShootT*)data;
 
-		uint32_t newId = Bullet::GetNewId();
+		uint32_t newId = GetNewBulletId();
 		t->bulletId = newId;
 
 		m_netServer.SendToAll(Net::Buf(*t), (uint16_t)NetMessage::Shoot, Net::Reliable);
 
-		Bullet* bullet = &m_bullets.emplace_back();
-		memcpy(bullet, data, sizeof(Bullet));
+		NetShootT* bullet = &m_bullets.emplace_back();
+		memcpy(bullet, t, sizeof(NetShootT));
 
 		break;
 	}

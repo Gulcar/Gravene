@@ -2,24 +2,10 @@
 
 #include <vector>
 #include "Connection.h"
+#include "NetCommon.h"
 #include <deque>
 #include <GulcarNet/Server.h>
 #include <memory>
-
-struct Bullet
-{
-	glm::vec2 position;
-	glm::vec2 direction;
-	uint16_t ownerId;
-	float timeToLive;
-	uint32_t bulletId;
-
-	static inline uint32_t GetNewId()
-	{
-		static uint32_t id = 1;
-		return id++;
-	}
-};
 
 class Server
 {
@@ -36,8 +22,8 @@ private:
 
 	void SpawnPowerup();
 
-	void PlayerHit(Connection& hitConn, Bullet& bullet);
-	void PlayerDied(Connection& diedConn, Bullet& bullet);
+	void PlayerHit(Connection& hitConn, NetShootT& bullet);
+	void PlayerDied(Connection& diedConn, NetShootT& bullet);
 
 	void AddConnection(Net::Connection& conn);
 	void RemoveConnection(Net::Connection& conn);
@@ -48,9 +34,15 @@ private:
 
 	void DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connection& conn);
 
+	static inline uint32_t GetNewBulletId()
+	{
+		static uint32_t id = 1;
+		return id++;
+	}
+
 private:
 	std::vector<Connection> m_connections;
-	std::deque<Bullet> m_bullets;
+	std::deque<NetShootT> m_bullets;
 
 	std::vector<glm::ivec2> m_powerUpPositions;
 	const int m_maxNumOfPowerUps = 10;

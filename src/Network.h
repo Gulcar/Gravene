@@ -8,21 +8,13 @@
 #include <unordered_map>
 #include <deque>
 #include <GulcarNet/Client.h>
+#include "Server/NetCommon.h"
 
 struct RemoteClientData
 {
 	uint32_t id;
 	glm::vec2 position;
 	float rotation;
-};
-
-struct Bullet
-{
-	glm::vec2 position;
-	glm::vec2 direction;
-	uint16_t ownerId;
-	float timeToLive;
-	uint32_t bulletId;
 };
 
 class Network
@@ -58,7 +50,7 @@ private:
 public:
 	static std::vector<RemoteClientData> RemoteClients;
 	static std::string LocalPlayerName;
-	static std::deque<Bullet> Bullets;
+	static std::deque<NetShootT> Bullets;
 	static std::vector<glm::ivec2> PowerUpPositions;
 
 private:
