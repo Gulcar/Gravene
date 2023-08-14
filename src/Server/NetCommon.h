@@ -45,6 +45,8 @@ enum class NetMessage : uint16_t
 	DestroyPowerUp,
 };
 
+#pragma pack(push, 1)
+
 struct NetPlayerPositionT
 {
 	glm::vec2 pos;
@@ -66,17 +68,13 @@ struct NetShootT
 	uint32_t bulletId;
 };
 
-struct NetDestroyPowerUpT
-{
-	int x;
-	int y;
-};
-
 struct NetPlayerDiedT
 {
 	uint16_t diedClientId;
 	uint16_t killedByClientId;
 };
+
+#pragma pack(pop)
 
 namespace NetCommon
 {

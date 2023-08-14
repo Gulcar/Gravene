@@ -25,8 +25,8 @@ void MenuScene::Update(float deltaTime)
 
 	if (m_playBtn.Clicked())
 	{
-		Network::Connect(m_serverIpInput.GetInput());
 		Network::LocalPlayerName = m_playerNameInput.GetInput();
+		Network::Connect(m_serverIpInput.GetInput());
 		SceneManager::SwitchToScene("GameScene");
 	}
 }

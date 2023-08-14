@@ -8,17 +8,17 @@ using namespace std::placeholders;
 
 void Server::Start(uint16_t port)
 {
-	m_netServer.Start(port);
-	fmt::print("Listening on port {}\n", port);
-
-	m_netServer.SetClientConnectedCallback([](Net::Connection& conn) {
-		std::cout << "new client connected: " << conn.GetAddr() << "\n";
+	m_netServer.SetClientConnectedCallback([this](Net::Connection& conn) {
+		AddConnection(conn);
 	});
-	m_netServer.SetClientDisconnectedCallback([](Net::Connection& conn) {
-		std::cout << "client disconnected: " << conn.GetAddr() << "\n";
+	m_netServer.SetClientDisconnectedCallback([this](Net::Connection& conn) {
+		RemoveConnection(conn);
 	});
 
 	m_netServer.SetDataReceiveCallback(std::bind(&Server::DataReceive, this, _1, _2, _3, _4));
+
+	m_netServer.Start(port);
+	fmt::print("Listening on port {}\n", port);
 }
 
 void Server::Update()
@@ -157,7 +157,7 @@ void Server::PlayerHit(Connection& hitConn, Bullet& bullet)
 		PlayerDied(hitConn, bullet);
 	}
 
-	m_netServer.SendTo(Net::Buf(hitConn.Health), (uint16_t)NetMessage::UpdateHealth, Net::Reliable, hitConn.GetNetConn());
+	m_netServer.SendTo(Net::Buf(hitConn.Health), (uint16_t)NetMessage::UpdateHealth, Net::Reliable, *hitConn.GetNetConn());
 }
 
 void Server::PlayerDied(Connection& diedConn, Bullet& bullet)
@@ -171,6 +171,52 @@ void Server::PlayerDied(Connection& diedConn, Bullet& bullet)
 	t.killedByClientId = bullet.ownerId;
 
 	m_netServer.SendToAll(Net::Buf(t), (uint16_t)NetMessage::PlayerDied, Net::Reliable);
+}
+
+void Server::AddConnection(Net::Connection& netConn)
+{
+	Connection& conn = m_connections.emplace_back(&netConn);
+	conn.Data.id = GetNewId();
+
+	fmt::print("new client connected (id: {}) {}\n", conn.Data.id, conn.GetAddr().ToString());
+
+	m_netServer.SendTo(Net::Buf("pozdravljen!"), (uint16_t)NetMessage::Hello, Net::Unreliable, netConn);
+	m_netServer.SendTo(Net::Buf((uint16_t)conn.Data.id), (uint16_t)NetMessage::ClientId, Net::Reliable, netConn);
+
+	for (int i = 0; i < m_connections.size() - 1; i++)
+	{
+		std::string nameMsg = "  " + m_connections[i].PlayerName;
+
+		uint16_t id = (uint16_t)m_connections[i].Data.id;
+		memcpy(&nameMsg[0], &id, 2);
+
+		m_netServer.SendTo(Net::Buf(nameMsg), (uint16_t)NetMessage::PlayerName, Net::Unreliable, netConn);
+	}
+
+	SendNumOfPlayers();
+
+	for (const auto& bullet : m_bullets)
+	{
+		m_netServer.SendTo(Net::Buf(bullet), (uint16_t)NetMessage::Shoot, Net::Unreliable, netConn);
+	}
+
+	for (const auto& powerUpPos : m_powerUpPositions)
+	{
+		m_netServer.SendTo(Net::Buf(powerUpPos), (uint16_t)NetMessage::SpawnPowerUp, Net::Unreliable, netConn);
+	}
+}
+
+void Server::RemoveConnection(Net::Connection& netConn)
+{	
+	for (auto it = m_connections.begin(); it != m_connections.end(); it++)
+	{
+		if (it->GetAddr() == netConn.GetAddr())
+		{
+			fmt::print("client disconnected (id: {}) {}\n", it->Data.id, it->GetAddr().ToString());
+			m_connections.erase(it);
+			break;
+		}
+	}
 }
 
 void Server::SendNumOfPlayers()
@@ -194,174 +240,76 @@ Connection* Server::FindConnectionFromAddr(Net::IPAddr addr)
 	return nullptr;
 }
 
-void Server::DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connection& conn)
+void Server::DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connection& netConn)
 {
+	Connection* conn = FindConnectionFromAddr(netConn.GetAddr());
+	if (conn == nullptr) return;
+
 	switch ((NetMessage)msgType)
 	{
+	case NetMessage::Hello:
+	{
+		fmt::print("Received: {}\n", (char*)data);
+		break;
 	}
 
-	/*
-	m_socket.async_receive_from(asio::buffer(m_receiveBuffer), m_receivingEndpoint, [&](asio::error_code ec, size_t bytes) {
-
-		//fmt::print("received a packet!\n");
-		if (ec == asio::error::connection_refused || ec == asio::error::eof || ec == asio::error::connection_reset)
-		{
-			for (int i = 0; i < m_connections.size(); i++)
-			{
-				if (m_connections[i].Endpoint == m_receivingEndpoint)
-				{
-					fmt::print("A client has disconnected (id: {})\n", m_connections[i].Data.id);
-					m_connections.erase(m_connections.begin() + i);
-					break;
-				}
-			}
-			SendNumOfPlayers();
-			AsyncReceive();
-			return;
-		}
-		else if (ec) fmt::print(fg(fmt::color::red), "Error: {} ({})\n", ec.message(), ec.value());
-
-		NetMessage type;
-		memcpy(&type, &m_receiveBuffer[0], 2);
-
-		switch (type)
-		{
-		case NetMessage::NewConnection:
-		{
-			Connection& conn = m_connections.emplace_back(m_receivingEndpoint, this);
-			conn.Data.id = GetNewId();
-			fmt::print("NewConnection (id: {}) {}\n", conn.Data.id, conn.Endpoint.address().to_string());
-
-			NetMessage type = NetMessage::ApproveConnection;
-			conn.Send(asio::buffer(&type, sizeof(type)));
-
-			static std::string msg = "  pozdravljen!\0";
-			type = NetMessage::Hello;
-			memcpy(&msg[0], &type, 2);
-			conn.Send(asio::buffer(msg));
-
-			uint8_t idData[2 + 2];
-			type = NetMessage::ClientId;
-			memcpy(&idData[0], &type, 2);
-			memcpy(&idData[2], &conn.Data.id, 2);
-			conn.Send(asio::buffer(idData, sizeof(idData)));
-			
-			for (int i = 0; i < m_connections.size() - 1; i++)
-			{
-				std::string nameMsg = "    " + m_connections[i].PlayerName;
-				type = NetMessage::PlayerName;
-				memcpy(&nameMsg[0], &type, 2);
-				uint16_t id = (uint16_t)m_connections[i].Data.id;
-				memcpy(&nameMsg[2], &id, 2);
-
-				conn.Send(asio::buffer(nameMsg.data(), nameMsg.length() + 1));
-			}
-
-			SendNumOfPlayers();
-
-			for (const auto& bullet : m_bullets)
-			{
-				uint8_t data[2 + sizeof(Bullet)];
-				type = NetMessage::Shoot;
-				memcpy(&data[0], &type, 2);
-				memcpy(&data[2], &bullet, sizeof(Bullet));
-				conn.Send(asio::buffer(data, sizeof(data)));
-			}
-
-			for (const auto& powerUpPos : m_powerUpPositions)
-			{
-				uint8_t data[2 + sizeof(glm::ivec2)];
-				type = NetMessage::SpawnPowerUp;
-				memcpy(&data[0], &type, 2);
-				memcpy(&data[2], &powerUpPos, sizeof(glm::ivec2));
-				conn.Send(asio::buffer(data, sizeof(data)));
-			}
-
+	case NetMessage::PlayerPosition:
+	{
+		if (conn->Health == 0)
 			break;
-		}
 
-		case NetMessage::TerminateConnection:
-		{
-			for (int i = 0; i < m_connections.size(); i++)
-			{
-				if (m_connections[i].Endpoint == m_receivingEndpoint)
-				{
-					fmt::print("TerminateConnection (id: {})\n", m_connections[i].Data.id);
-					m_connections.erase(m_connections.begin() + i);
-					break;
-				}
-			}
-			SendNumOfPlayers();
-			break;
-		}
+		NetPlayerPositionT* t = (NetPlayerPositionT*)data;
+		conn->Data.position = t->pos;
+		conn->Data.rotation = t->rot;
 
-		case NetMessage::Hello:
-		{
-			fmt::print("Received: {}\n", (char*)m_receiveBuffer.data() + 2);
-			break;
-		}
+		//fmt::print("PlayerPosition {}: pos: {}, {}, rot: {}\n", conn.Data.id, conn.Data.position.x, conn.Data.position.y, conn.Data.rotation);
+		break;
+	}
 
-		case NetMessage::PlayerPosition:
-		{
-			Connection* conn = FindConnectionFromEndpoint(m_receivingEndpoint);
-			if (conn == nullptr) break;
+	case NetMessage::PlayerName:
+	{
+		NetPlayerNameT* t = (NetPlayerNameT*)data;
 
-			if (conn->Health == 0)
-				break;
+		size_t len = strlen(t->name);
+		conn->PlayerName = t->name;
 
-			memcpy(&conn->Data.position, &m_receiveBuffer[2], 12);
-			//fmt::print("PlayerPosition {}: pos: {}, {}, rot: {}\n", conn.Data.id, conn.Data.position.x, conn.Data.position.y, conn.Data.rotation);
+		t->id = (uint16_t)conn->Data.id;
 
-			break;
-		}
+		m_netServer.SendToAll(Net::Buf(*t), (uint16_t)NetMessage::PlayerName, Net::Reliable);
 
-		case NetMessage::PlayerName:
-		{
-			Connection* conn = FindConnectionFromEndpoint(m_receivingEndpoint);
-			if (conn == nullptr) break;
-			
-			size_t len = strlen((char*)&m_receiveBuffer[4]);
-			conn->PlayerName.resize(len, ' ');
-			memcpy(&conn->PlayerName[0], &m_receiveBuffer[4], len + 1);
+		fmt::print("Received Player Name: {} (id: {})\n", conn->PlayerName, conn->Data.id);
+		break;
+	}
 
-			uint16_t id = (uint16_t)conn->Data.id;
-			memcpy(&m_receiveBuffer[2], &id, 2);
-			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + 2 + len + 1));
+	case NetMessage::Shoot:
+	{
+		//fmt::print("Shoot");
 
-			fmt::print("Received Player Name: {} (id: {})\n", conn->PlayerName, conn->Data.id);
-			break;
-		}
+		NetShootT* t = (NetShootT*)data;
 
-		case NetMessage::Shoot:
-		{
-			//fmt::print("Shoot");
-			uint32_t newId = Bullet::GetNewId();
-			memcpy(&m_receiveBuffer[2 + offsetof(Bullet, bulletId)], &newId, 4);
-			SendToAllConnections(asio::buffer(m_receiveBuffer.data(), 2 + sizeof(Bullet)));
-			Bullet* bullet = &m_bullets.emplace_back();
-			memcpy(bullet, &m_receiveBuffer[2], sizeof(Bullet));
-			break;
-		}
+		uint32_t newId = Bullet::GetNewId();
+		t->bulletId = newId;
 
-		case NetMessage::DestroyPowerUp:
-		{
-			glm::ivec2 pos;
-			memcpy(&pos, &m_receiveBuffer[2], sizeof(glm::ivec2));
+		m_netServer.SendToAll(Net::Buf(*t), (uint16_t)NetMessage::Shoot, Net::Reliable);
 
-			m_powerUpPositions.erase(std::remove(m_powerUpPositions.begin(), m_powerUpPositions.end(), pos), m_powerUpPositions.end());
+		Bullet* bullet = &m_bullets.emplace_back();
+		memcpy(bullet, data, sizeof(Bullet));
 
-			SendToAllConnections(asio::buffer(m_receiveBuffer, 2 + sizeof(glm::ivec2)));
+		break;
+	}
 
-			fmt::print("Picked up power up\n");
+	case NetMessage::DestroyPowerUp:
+	{
+		glm::ivec2 pos = *(glm::ivec2*)data;
+		m_powerUpPositions.erase(std::remove(m_powerUpPositions.begin(), m_powerUpPositions.end(), pos), m_powerUpPositions.end());
+		
+		m_netServer.SendToAll(Net::Buf(pos), (uint16_t)NetMessage::DestroyPowerUp, Net::Reliable);
 
-			break;
-		}
+		fmt::print("Picked up power up\n");
+		break;
+	}
 
-		default:
-			fmt::print(fg(fmt::color::red), "Received invalid NetMessage type: {}\n", (int)type);
-		}
-
-		AsyncReceive();
-	});
-	*/
+	default:
+		fmt::print(fg(fmt::color::red), "Received invalid NetMessage type: {}\n", (int)msgType);
+	}
 }

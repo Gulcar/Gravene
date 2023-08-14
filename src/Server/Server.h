@@ -4,6 +4,7 @@
 #include "Connection.h"
 #include <deque>
 #include <GulcarNet/Server.h>
+#include <memory>
 
 struct Bullet
 {
@@ -26,6 +27,7 @@ public:
 	void Start(uint16_t port);
 	void Update();
 
+private:
 	void UpdateClientPositions();
 	void UpdateBullets();
 	void UpdateCollisions();
@@ -37,11 +39,13 @@ public:
 	void PlayerHit(Connection& hitConn, Bullet& bullet);
 	void PlayerDied(Connection& diedConn, Bullet& bullet);
 
+	void AddConnection(Net::Connection& conn);
+	void RemoveConnection(Net::Connection& conn);
+
 	void SendNumOfPlayers();
 
 	Connection* FindConnectionFromAddr(Net::IPAddr addr);
 
-private:
 	void DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connection& conn);
 
 private:

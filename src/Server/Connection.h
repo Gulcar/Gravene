@@ -22,11 +22,14 @@ struct ClientData
 class Connection
 {
 public:
-	inline Net::IPAddr GetAddr() const { return m_netConn.GetAddr(); }
-	inline Net::Connection& GetNetConn() { return m_netConn; }
+	Connection(Net::Connection* netConn)
+		: m_netConn(netConn) {}
+
+	inline Net::IPAddr GetAddr() const { return m_netConn->GetAddr(); }
+	inline Net::Connection* GetNetConn() { return m_netConn; }
 
 private:
-	Net::Connection& m_netConn;
+	Net::Connection* m_netConn;
 
 public:
 	ClientData Data;

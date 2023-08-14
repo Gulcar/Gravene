@@ -12,11 +12,6 @@
 
 void Network::Connect(std::string_view ip)
 {
-	s_netClient.Connect(Net::IPAddr(ip, 7766));
-
-	Network::SendHello("pozdravljen to je client!");
-	Network::SendPlayerName(LocalPlayerName);
-
 	s_netClient.SetConnectionStatusCallback([](Net::Client::Status status) {
 		switch (status)
 		{
@@ -33,13 +28,15 @@ void Network::Connect(std::string_view ip)
 
 	s_netClient.SetDataReceiveCallback(HandleReceivedMessage);
 
-	// TODO: preveri NetMessage::NewConnection
+	s_netClient.Connect(Net::IPAddr(ip, 7766));
+
+	Network::SendHello("pozdravljen to je client!");
+	Network::SendPlayerName(LocalPlayerName);
 }
 
 void Network::Disconnect()
 {
 	s_netClient.Disconnect();
-	// TODO: preveri NetMessage::TerminateConnection
 }
 
 void Network::SendHello(const std::string& msg)
@@ -80,11 +77,7 @@ void Network::SendShoot(glm::vec2 pos, glm::vec2 dir)
 
 void Network::SendPowerUpPickup(glm::ivec2 pos)
 {
-	NetDestroyPowerUpT t;
-	t.x = pos.x;
-	t.y = pos.y;
-
-	s_netClient.Send(Net::Buf(t), (uint16_t)NetMessage::DestroyPowerUp, Net::Reliable);
+	s_netClient.Send(Net::Buf(pos), (uint16_t)NetMessage::DestroyPowerUp, Net::Reliable);
 }
 
 const std::string& Network::GetPlayerNameFromId(uint16_t id)
@@ -118,7 +111,6 @@ void Network::Process()
 
 void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 {
-	/* TODO: vse to
 	switch ((NetMessage)msgType)
 	{
 	case NetMessage::Hello:
@@ -128,17 +120,17 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 	case NetMessage::ClientId:
 	{
-		memcpy(&s_clientId, s_receiveBuffer.data() + 2, 2);
+		s_clientId = *(uint16_t*)data;
 		fmt::print("ClientId: {}\n", s_clientId);
 		break;
 	}
 	case NetMessage::AllPlayersPosition:
 	{
 		uint16_t size;
-		memcpy(&size, &s_receiveBuffer[2], 2);
+		memcpy(&size, data, 2);
 
 		RemoteClients.resize(size);
-		memcpy(&RemoteClients[0], &s_receiveBuffer[4], size * 16);
+		memcpy(&RemoteClients[0], (char*)data + 2, size * 16);
 
 		//fmt::print("Received {} remote clients\n", size);
 		//for (const auto& d : RemoteClients)
@@ -150,34 +142,25 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 	case NetMessage::PlayerName:
 	{
-		uint16_t id;
-		std::string name;
-
-		memcpy(&id, &s_receiveBuffer[2], 2);
-
-		size_t len = strlen((char*)&s_receiveBuffer[4]);
-		name.resize(len);
-		memcpy(&name[0], &s_receiveBuffer[4], len + 1);
-
-		fmt::print("Received PlayerName(id: {}): {}\n", id, name);
-		s_allPlayerNames.insert({ id, name });
+		NetPlayerNameT* t = (NetPlayerNameT*)data;
+		fmt::print("Received PlayerName(id: {}): {}\n", t->id, t->name);
+		s_allPlayerNames.insert({ t->id, std::string(t->name) });
 		break;
 	}
 	case NetMessage::NumOfPlayers:
 	{
-		memcpy(&s_numOfPlayers, &s_receiveBuffer[2], 2);
+		s_numOfPlayers = *(uint16_t*)data;
 		break;
 	}
 	case NetMessage::Shoot:
 	{
 		Bullet* bullet = &Bullets.emplace_back();
-		memcpy(bullet, &s_receiveBuffer[2], sizeof(Bullet));
+		memcpy(bullet, data, sizeof(Bullet));
 		break;
 	}
 	case NetMessage::DestroyBullet:
 	{
-		uint32_t bulletId;
-		memcpy(&bulletId, &s_receiveBuffer[2], 4);
+		uint32_t bulletId = *(uint32_t*)data;
 
 		for (int i = 0; i < Bullets.size(); i++)
 		{
@@ -195,31 +178,28 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 	case NetMessage::UpdateHealth:
 	{
-		memcpy(&s_localPlayerHealth, &s_receiveBuffer[2], 4);
+		s_localPlayerHealth = *(uint32_t*)data;
 		break;
 	}
 	case NetMessage::PlayerDied:
 	{
-		uint16_t id;
-		memcpy(&id, &s_receiveBuffer[2], 2);
-		uint16_t killerId;
-		memcpy(&killerId, &s_receiveBuffer[4], 2);
+		NetPlayerDiedT* t = (NetPlayerDiedT*)data;
 
-		s_deadPlayers.push_back(id);
+		s_deadPlayers.push_back(t->diedClientId);
 
-		if (s_clientId == id)
+		if (s_clientId == t->diedClientId)
 		{
-			s_killedById = killerId;
+			s_killedById = t->killedByClientId;
 		}
-		else if (s_clientId == killerId)
+		else if (s_clientId == t->killedByClientId)
 		{
 			s_killTime = glfwGetTime();
-			s_killedId = id;
+			s_killedId = t->diedClientId;
 		}
 
 		for (RemoteClientData& client : RemoteClients)
 		{
-			if (client.id == id)
+			if (client.id == t->diedClientId)
 			{
 				glm::vec3 color = { 0.96f, 0.027f, 0.027f };
 				if (client.id == s_clientId)
@@ -235,8 +215,7 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 	case NetMessage::PlayerRevived:
 	{
-		uint16_t id;
-		memcpy(&id, &s_receiveBuffer[2], 2);
+		uint16_t id = *(uint16_t*)data;
 		s_deadPlayers.erase(std::remove(s_deadPlayers.begin(), s_deadPlayers.end(), id), s_deadPlayers.end());
 
 		if (id == s_clientId)
@@ -250,22 +229,19 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 	case NetMessage::SpawnPowerUp:
 	{
-		glm::ivec2 pos;
-		memcpy(&pos, &s_receiveBuffer[2], sizeof(pos));
+		glm::ivec2 pos = *(glm::ivec2*)data;
 		PowerUpPositions.push_back(pos);
 		break;
 	}
 	case NetMessage::DestroyPowerUp:
 	{
-		glm::ivec2 pos;
-		memcpy(&pos, &s_receiveBuffer[2], sizeof(pos));
+		glm::ivec2 pos = *(glm::ivec2*)data;
 		PowerUpPositions.erase(std::remove(PowerUpPositions.begin(), PowerUpPositions.end(), pos), PowerUpPositions.end());
 		break;
 	}
 	default:
 		fmt::print(fg(fmt::color::red), "Received invalid net message type: {}\n", msgType);
 	}
-	*/
 }
 
 std::vector<RemoteClientData> Network::RemoteClients;
