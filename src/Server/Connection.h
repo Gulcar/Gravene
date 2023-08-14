@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <asio.hpp>
 #include <string>
 #include <array>
 #include <glm/vec2.hpp>

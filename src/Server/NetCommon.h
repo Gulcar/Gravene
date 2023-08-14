@@ -5,18 +5,6 @@
 
 enum class NetMessage : uint16_t
 {
-	// [deprecated]
-	// from client: empty
-	NewConnection,
-
-	// [deprecated]
-	// from server: empty
-	ApproveConnection,
-
-	// [deprecated]
-	// empty
-	TerminateConnection,
-
 	// message string
 	Hello,
 

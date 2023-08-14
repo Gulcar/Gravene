@@ -5,16 +5,25 @@
 #include <fmt/core.h>
 #include <fmt/color.h>
 
-void Server::Start()
+void Server::Start(uint16_t port)
 {
-	PrintLocalIp();
+	m_netServer.Start(port);
+	fmt::print("Listening on port {}\n", port);
 
-	AsyncReceive();
-	m_ioContext.run();
+	m_netServer.SetClientConnectedCallback([](Net::Connection& conn) {
+		std::cout << "new client connected: " << conn.GetAddr() << "\n";
+	});
+	m_netServer.SetClientDisconnectedCallback([](Net::Connection& conn) {
+		std::cout << "client disconnected: " << conn.GetAddr() << "\n";
+	});
+
+	m_netServer.SetDataReceiveCallback(DataReceive);
 }
 
 void Server::Update()
 {
+	m_netServer.Process();
+
 	UpdateClientPositions();
 	UpdateBullets();
 	UpdateCollisions();
@@ -231,8 +240,13 @@ Connection* Server::FindConnectionFromEndpoint(asio::ip::udp::endpoint endpoint)
 	return nullptr;
 }
 
-void Server::AsyncReceive()
+void Server::DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connection& conn)
 {
+	switch ((NetMessage)msgType)
+	{
+	}
+
+	/*
 	m_socket.async_receive_from(asio::buffer(m_receiveBuffer), m_receivingEndpoint, [&](asio::error_code ec, size_t bytes) {
 
 		//fmt::print("received a packet!\n");
@@ -395,4 +409,5 @@ void Server::AsyncReceive()
 
 		AsyncReceive();
 	});
+	*/
 }

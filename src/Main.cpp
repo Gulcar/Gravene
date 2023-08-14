@@ -35,6 +35,8 @@ int main()
 
 		Input::Poll();
 
+		Network::Process();
+
 		SceneManager::Update();
 	}
 

@@ -12,25 +12,17 @@ int main()
 	Utils::EnableTerminalColors();
 	srand(time(nullptr));
 
-	try
+	Server server;
+	server.Start(PORT);
+
+	fmt::print("Server Started!\n");
+
+	Utils::FpsLimiter fpsLimiter(14);
+
+	while (true)
 	{
-		Server server(PORT);
+		fpsLimiter.NewFrame();
 
-		fmt::print("Server Started!\n");
-
-		std::thread contextThr([&]() { server.Start(); });
-
-		Utils::FpsLimiter fpsLimiter(14);
-
-		while (true)
-		{
-			fpsLimiter.NewFrame();
-
-			server.Update();
-		}
-	}
-	catch (std::exception& e)
-	{
-		fmt::print(fg(fmt::color::red), "Error: Exception: {}\n", e.what());
+		server.Update();
 	}
 }

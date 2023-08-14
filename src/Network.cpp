@@ -1,6 +1,5 @@
 #include "Network.h"
 
-#include <asio.hpp>
 #include <fmt/core.h>
 #include <fmt/color.h>
 #include <thread>
