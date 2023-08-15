@@ -9,7 +9,7 @@
 
 namespace Utils
 {
-	void EnableTerminalColors()
+	inline void EnableTerminalColors()
 	{
 #ifdef WIN32
 		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -45,4 +45,17 @@ namespace Utils
 		std::chrono::steady_clock::time_point m_startFrameTime;
 		std::chrono::steady_clock::time_point m_endFrameTime;
 	};
+
+	inline glm::vec2 Lerp(glm::vec2 a, glm::vec2 b, float t)
+	{
+		return ((1.0f - t) * a) + (t * b);
+	}
+
+	inline float LerpRotation(float a, float b, float t)
+	{
+		if (a - b > 180.0f) b += 360.0f;
+		else if (b - a > 180.0f) a += 360.0f;
+
+		return ((1.0f - t) * a) + (t * b);
+	}
 }

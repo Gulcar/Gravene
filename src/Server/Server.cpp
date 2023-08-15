@@ -34,6 +34,12 @@ void Server::Update()
 
 void Server::UpdateClientPositions()
 {
+	// poslji vsak drug tick
+	static bool send = true;
+	send = !send;
+	if (send == false)
+		return;
+
 	if (m_connections.size() == 0)
 		return;
 

@@ -9,6 +9,7 @@
 #include <deque>
 #include <GulcarNet/Client.h>
 #include "Server/NetCommon.h"
+#include <chrono>
 
 struct RemoteClientData
 {
@@ -35,6 +36,8 @@ public:
 	static const std::string& GetPlayerNameFromId(uint16_t id);
 	static inline uint16_t GetNumOfPlayers() { return s_numOfPlayers; }
 
+	static RemoteClientData GetInterpolatedMovement(RemoteClientData remoteClient);
+
 	static inline const std::string& GetKilledByName() { return GetPlayerNameFromId(s_killedById); }
 	static inline float GetKillTime() { return s_killTime; }
 	static inline const std::string& GetKillName() { return GetPlayerNameFromId(s_killedId); }
@@ -47,8 +50,13 @@ public:
 private:
 	static void HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType);
 
+	using Clock = std::chrono::steady_clock;
+
 public:
 	static std::vector<RemoteClientData> RemoteClients;
+	static std::vector<RemoteClientData> PrevRemoteClients;
+	inline static Clock::time_point PosTime, PrevPosTime;
+
 	static std::string LocalPlayerName;
 	static std::deque<NetShootT> Bullets;
 	static std::vector<glm::ivec2> PowerUpPositions;

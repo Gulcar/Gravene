@@ -111,8 +111,9 @@ void GameScene::Draw(float deltaTime)
 	{
 		if (c.id != Network::GetLocalClientId() && Network::IsAlive(c.id))
 		{
-			Renderer::Draw(m_playerTexture, c.position, { 2.0f, 2.0f }, c.rotation, { 0.96f, 0.027f, 0.027f });
-			Text::Write(Network::GetPlayerNameFromId(c.id), {c.position.x, c.position.y + 1.2f}, 0.75f, true, true);
+			auto interpolated = Network::GetInterpolatedMovement(c);
+			Renderer::Draw(m_playerTexture, interpolated.position, { 2.0f, 2.0f }, interpolated.rotation, { 0.96f, 0.027f, 0.027f });
+			Text::Write(Network::GetPlayerNameFromId(c.id), { interpolated.position.x, interpolated.position.y + 1.2f}, 0.75f, true, true);
 		}
 	}
 

@@ -1,6 +1,5 @@
 #include <fmt/core.h>
 #include <fmt/color.h>
-#include <thread>
 #include "Server.h"
 #include "../Utils.h"
 

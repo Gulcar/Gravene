@@ -2,11 +2,11 @@
 
 #include <fmt/core.h>
 #include <fmt/color.h>
-#include <thread>
 #include "Server/NetCommon.h"
 #include "Renderer.h"
 #include "Text.h"
 #include "SceneManager.h"
+#include "Utils.h"
 #include "GameScene.h"
 #include <GLFW/glfw3.h>
 
@@ -33,6 +33,8 @@ void Network::Connect(std::string_view ip)
 
 	Network::SendHello("pozdravljen to je client!");
 	Network::SendPlayerName(LocalPlayerName);
+
+	PosTime = PrevPosTime = Clock::now();
 }
 
 void Network::Disconnect()
@@ -94,6 +96,26 @@ const std::string& Network::GetPlayerNameFromId(uint16_t id)
 	return empty;
 }
 
+RemoteClientData Network::GetInterpolatedMovement(RemoteClientData client)
+{
+	auto prevClient = std::find_if(PrevRemoteClients.begin(), PrevRemoteClients.end(), [client](RemoteClientData& d) {
+		return d.id == client.id;
+	});
+
+	if (prevClient == PrevRemoteClients.end())
+		return client;
+
+	std::chrono::duration<float> timePassed = Clock::now() - PosTime;
+	std::chrono::duration<float> timeBetween = PosTime - PrevPosTime;
+
+	float t = timePassed.count() / timeBetween.count();
+
+	client.position = Utils::Lerp(prevClient->position, client.position, t);
+	client.rotation = Utils::LerpRotation(prevClient->rotation, client.rotation, t);
+
+	return client;
+}
+
 bool Network::IsAlive(uint16_t id)
 {
 	for (int i = 0; i < s_deadPlayers.size(); i++)
@@ -127,11 +149,16 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 	case NetMessage::AllPlayersPosition:
 	{
+		PrevRemoteClients = RemoteClients;
+		PrevPosTime = PosTime;
+
 		uint16_t size;
 		memcpy(&size, data, 2);
 
 		RemoteClients.resize(size);
 		memcpy(&RemoteClients[0], (char*)data + 2, size * 16);
+
+		PosTime = Clock::now();
 
 		//fmt::print("Received {} remote clients\n", size);
 		//for (const auto& d : RemoteClients)
@@ -246,6 +273,7 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 }
 
 std::vector<RemoteClientData> Network::RemoteClients;
+std::vector<RemoteClientData> Network::PrevRemoteClients;
 std::string Network::LocalPlayerName;
 std::deque<NetShootT> Network::Bullets;
 std::vector<glm::ivec2> Network::PowerUpPositions;
