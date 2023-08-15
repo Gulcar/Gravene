@@ -107,7 +107,8 @@ void GameScene::Draw(float deltaTime)
 		Renderer::Draw(m_pixelTexture, { m_localPlayer.Position.x - healthOffset, m_localPlayer.Position.y - 1.3f }, { healthWidth, 0.25f }, 0.0f, { 0.96f, 0.027f, 0.027f });
 	}
 
-	for (const auto& c : Network::RemoteClients)
+	if (Network::PositionStates.size() > 0)
+	for (const auto& c : Network::GetLatestPositions())
 	{
 		if (c.id != Network::GetLocalClientId() && Network::IsAlive(c.id))
 		{

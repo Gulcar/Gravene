@@ -36,7 +36,8 @@ public:
 	static const std::string& GetPlayerNameFromId(uint16_t id);
 	static inline uint16_t GetNumOfPlayers() { return s_numOfPlayers; }
 
-	static RemoteClientData GetInterpolatedMovement(RemoteClientData remoteClient);
+	static inline std::vector<RemoteClientData>& GetLatestPositions() { return PositionStates.back().clients; }
+	static RemoteClientData GetInterpolatedMovement(const RemoteClientData& client);
 
 	static inline const std::string& GetKilledByName() { return GetPlayerNameFromId(s_killedById); }
 	static inline float GetKillTime() { return s_killTime; }
@@ -53,9 +54,12 @@ private:
 	using Clock = std::chrono::steady_clock;
 
 public:
-	static std::vector<RemoteClientData> RemoteClients;
-	static std::vector<RemoteClientData> PrevRemoteClients;
-	inline static Clock::time_point PosTime, PrevPosTime;
+	struct PositionState
+	{
+		Clock::time_point time;
+		std::vector<RemoteClientData> clients;
+	};
+	inline static std::deque<PositionState> PositionStates;
 
 	static std::string LocalPlayerName;
 	static std::deque<NetShootT> Bullets;

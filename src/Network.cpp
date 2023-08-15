@@ -33,8 +33,6 @@ void Network::Connect(std::string_view ip)
 
 	Network::SendHello("pozdravljen to je client!");
 	Network::SendPlayerName(LocalPlayerName);
-
-	PosTime = PrevPosTime = Clock::now();
 }
 
 void Network::Disconnect()
@@ -96,24 +94,52 @@ const std::string& Network::GetPlayerNameFromId(uint16_t id)
 	return empty;
 }
 
-RemoteClientData Network::GetInterpolatedMovement(RemoteClientData client)
+RemoteClientData Network::GetInterpolatedMovement(const RemoteClientData& client)
 {
-	auto prevClient = std::find_if(PrevRemoteClients.begin(), PrevRemoteClients.end(), [client](RemoteClientData& d) {
+	RemoteClientData interpolated = client;
+
+	if (PositionStates.size() < 2)
+		return interpolated;
+
+	constexpr auto interpolationTime = std::chrono::milliseconds(50);
+	auto time = Clock::now() - interpolationTime;
+
+	int i;
+	for (i = 0; i < PositionStates.size(); i++)
+	{
+		if (PositionStates[i].time > time)
+			break;
+	}
+
+	if (i == 0)
+		return interpolated;
+	if (i == PositionStates.size())
+		i--;
+
+	const auto& stateBefore = PositionStates[i - 1];
+	const auto& stateAfter = PositionStates[i];
+
+	auto clientBefore = std::find_if(stateBefore.clients.begin(), stateBefore.clients.end(), [client](const RemoteClientData& d) {
+		return d.id == client.id;
+	});
+	auto clientAfter = std::find_if(stateAfter.clients.begin(), stateAfter.clients.end(), [client](const RemoteClientData& d) {
 		return d.id == client.id;
 	});
 
-	if (prevClient == PrevRemoteClients.end())
-		return client;
+	if (clientBefore == stateBefore.clients.end())
+		return interpolated;
+	if (clientAfter == stateAfter.clients.end())
+		return interpolated;
 
-	std::chrono::duration<float> timePassed = Clock::now() - PosTime;
-	std::chrono::duration<float> timeBetween = PosTime - PrevPosTime;
+	std::chrono::duration<float> timePassed = time - stateBefore.time;
+	std::chrono::duration<float> timeBetween = stateAfter.time - stateBefore.time;
 
 	float t = timePassed.count() / timeBetween.count();
 
-	client.position = Utils::Lerp(prevClient->position, client.position, t);
-	client.rotation = Utils::LerpRotation(prevClient->rotation, client.rotation, t);
+	interpolated.position = Utils::Lerp(clientBefore->position, clientAfter->position, t);
+	interpolated.rotation = Utils::LerpRotation(clientBefore->rotation, clientAfter->rotation, t);
 
-	return client;
+	return interpolated;
 }
 
 bool Network::IsAlive(uint16_t id)
@@ -130,6 +156,12 @@ bool Network::IsAlive(uint16_t id)
 void Network::Process()
 {
 	s_netClient.Process();
+
+	if (PositionStates.size() > 0 &&
+		Clock::now() - PositionStates.front().time > std::chrono::seconds(1))
+	{
+		PositionStates.pop_front();
+	}
 }
 
 void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
@@ -149,16 +181,15 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 	case NetMessage::AllPlayersPosition:
 	{
-		PrevRemoteClients = RemoteClients;
-		PrevPosTime = PosTime;
-
 		uint16_t size;
 		memcpy(&size, data, 2);
 
-		RemoteClients.resize(size);
-		memcpy(&RemoteClients[0], (char*)data + 2, size * 16);
+		PositionState state;
+		state.time = Clock::now();
+		state.clients.resize(size);
+		memcpy(&state.clients[0], (char*)data + 2, size * 16);
 
-		PosTime = Clock::now();
+		PositionStates.push_back(std::move(state));
 
 		//fmt::print("Received {} remote clients\n", size);
 		//for (const auto& d : RemoteClients)
@@ -225,7 +256,8 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 			s_killedId = t->diedClientId;
 		}
 
-		for (RemoteClientData& client : RemoteClients)
+		if (PositionStates.size() > 0)
+		for (RemoteClientData& client : GetLatestPositions())
 		{
 			if (client.id == t->diedClientId)
 			{
@@ -272,8 +304,6 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
 	}
 }
 
-std::vector<RemoteClientData> Network::RemoteClients;
-std::vector<RemoteClientData> Network::PrevRemoteClients;
 std::string Network::LocalPlayerName;
 std::deque<NetShootT> Network::Bullets;
 std::vector<glm::ivec2> Network::PowerUpPositions;
