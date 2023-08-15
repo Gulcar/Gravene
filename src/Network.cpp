@@ -20,10 +20,10 @@ void Network::Connect(std::string_view ip)
 		case Net::Client::Status::Connected:
 			fmt::print("connection status: Connected\n"); break;
 		case Net::Client::Status::Disconnected:
-			fmt::print("connection status: Disconnected\n"); break;
+			fmt::print(fg(fmt::color::red), "connection status: Disconnected\n"); break;
 		case Net::Client::Status::FailedToConnect:
-			// TODO: ce failed to connect vrzi playerja nazaj v menu
-			fmt::print("connection status: FailedToConnect\n"); break;
+			SceneManager::SwitchToScene("MenuScene");
+			fmt::print(fg(fmt::color::red), "connection status: FailedToConnect\n"); break;
 		}
 	});
 
@@ -96,6 +96,9 @@ const std::string& Network::GetPlayerNameFromId(uint16_t id)
 
 RemoteClientData Network::GetInterpolatedMovement(const RemoteClientData& client)
 {
+	// https://www.gabrielgambetta.com/entity-interpolation.html
+	// https://antriel.com/post/online-platformer-5/
+
 	RemoteClientData interpolated = client;
 
 	if (PositionStates.size() < 2)

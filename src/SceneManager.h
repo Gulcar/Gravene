@@ -33,4 +33,5 @@ public:
 private:
 	static std::unordered_map<std::string, std::unique_ptr<Scene>> s_scenes;
 	static Scene* s_currentScene;
+	inline static Scene* s_switchTo = nullptr;
 };

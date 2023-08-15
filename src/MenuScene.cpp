@@ -14,7 +14,10 @@ void MenuScene::Start()
 	m_playerNameInput.SetPosAndSize({ 0.0f, 1.5f }, { 10.0f, 1.4f });
 
 	m_serverIpInput.SetPosAndSize( { 0.0f, -1.6}, { 10.0f, 1.4f } );
-	m_serverIpInput.GetInput() = "127.0.0.1";
+	if (m_serverIpInput.GetInput() == "")
+		m_serverIpInput.GetInput() = "127.0.0.1";
+
+	Renderer::SetCameraPos(glm::vec2(0.0f, 0.0f));
 }
 
 void MenuScene::Update(float deltaTime)
