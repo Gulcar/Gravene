@@ -49,6 +49,10 @@ void Network::SendPlayerPosition(glm::vec2 pos, float rot)
 {
 	if (s_netClient.IsConnected() == false)
 		return;
+	if (Clock::now() - posSentTime < std::chrono::milliseconds(15))
+		return;
+
+	posSentTime = Clock::now();
 
 	NetPlayerPositionT t;
 	t.pos = pos;
@@ -104,7 +108,7 @@ RemoteClientData Network::GetInterpolatedMovement(const RemoteClientData& client
 	if (PositionStates.size() < 2)
 		return interpolated;
 
-	constexpr auto interpolationTime = std::chrono::milliseconds(50);
+	constexpr auto interpolationTime = std::chrono::milliseconds(60);
 	auto time = Clock::now() - interpolationTime;
 
 	int i;

@@ -128,6 +128,17 @@ void GameScene::Draw(float deltaTime)
 		particleSystem.Draw();
 
 	Text::WriteFps(deltaTime);
+
+	std::string dstr = fmt::format("D: {} kB/s ({} packets/s)",
+		Network::GetStats().ReceivedBytesPerSecond() / 1000.0f,
+		Network::GetStats().ReceivedPacketsPerSecond());
+	std::string ustr = fmt::format("U: {} kB/s ({} packets/s)",
+		Network::GetStats().SentBytesPerSecond() / 1000.0f,
+		Network::GetStats().SentPacketsPerSecond());
+
+	Text::Write(dstr, { -Renderer::GetRightEdgeWorldPos() + 0.5f, 8.6f }, 0.4f);
+	Text::Write(ustr, { -Renderer::GetRightEdgeWorldPos() + 0.5f, 8.2f }, 0.4f);
+
 	Text::WriteRightAligned(fmt::format("players:{}", Network::GetNumOfPlayers()), {Renderer::GetRightEdgeWorldPos(), 9.4f}, 0.8f);
 
 	if (Network::IsAlive(Network::GetLocalClientId()) == false)

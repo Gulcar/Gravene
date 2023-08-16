@@ -48,6 +48,8 @@ public:
 
 	static void Process();
 
+	static inline const Net::Statistics& GetStats() { return s_netClient.GetStats(); }
+
 private:
 	static void HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType);
 
@@ -73,6 +75,8 @@ private:
 	static uint16_t s_numOfPlayers;
 
 	static inline const float s_bulletTimeToLive = 5.0f;
+
+	inline static Clock::time_point posSentTime = Clock::now();
 
 	static std::vector<uint16_t> s_deadPlayers;
 	static uint16_t s_killedById;
