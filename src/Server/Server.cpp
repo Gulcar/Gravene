@@ -154,7 +154,6 @@ void Server::SpawnPowerup()
 
 void Server::PlayerHit(Connection& hitConn, NetShootT& bullet)
 {
-	// TODO: mogoce reliable tukaj
 	m_netServer.SendToAll(Net::Buf(bullet.bulletId), (uint16_t)NetMessage::DestroyBullet, Net::Unreliable);
 
 	hitConn.Health -= 10;
@@ -196,7 +195,7 @@ void Server::AddConnection(Net::Connection& netConn)
 		uint16_t id = (uint16_t)m_connections[i].Data.id;
 		memcpy(&nameMsg[0], &id, 2);
 
-		m_netServer.SendTo(Net::Buf(nameMsg), (uint16_t)NetMessage::PlayerName, Net::Unreliable, netConn);
+		m_netServer.SendTo(Net::Buf(nameMsg), (uint16_t)NetMessage::PlayerName, Net::Reliable, netConn);
 	}
 
 	SendNumOfPlayers();
@@ -208,7 +207,7 @@ void Server::AddConnection(Net::Connection& netConn)
 
 	for (const auto& powerUpPos : m_powerUpPositions)
 	{
-		m_netServer.SendTo(Net::Buf(powerUpPos), (uint16_t)NetMessage::SpawnPowerUp, Net::Unreliable, netConn);
+		m_netServer.SendTo(Net::Buf(powerUpPos), (uint16_t)NetMessage::SpawnPowerUp, Net::Reliable, netConn);
 	}
 }
 

@@ -20,6 +20,7 @@ void Network::Connect(std::string_view ip)
 		case Net::Client::Status::Connected:
 			fmt::print("connection status: Connected\n"); break;
 		case Net::Client::Status::Disconnected:
+			SceneManager::SwitchToScene("MenuScene");
 			fmt::print(fg(fmt::color::red), "connection status: Disconnected\n"); break;
 		case Net::Client::Status::FailedToConnect:
 			SceneManager::SwitchToScene("MenuScene");
