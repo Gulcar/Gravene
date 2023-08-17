@@ -3,6 +3,15 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Gravene)
 
+option(GRAVENE_SERVER_ONLY "only compile the server and not the client" Off)
+
+if (GRAVENE_SERVER_ONLY)
+	add_subdirectory(deps/fmt/)
+	add_subdirectory(deps/GulcarNetworking/)
+	add_subdirectory(src/Server/)
+	return()
+endif()
+
 add_executable(${PROJECT_NAME}
 	src/Main.cpp
 	src/Renderer.cpp
@@ -20,27 +29,22 @@ add_executable(${PROJECT_NAME}
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-add_compile_definitions(ASIO_SEPARATE_COMPILATION _WIN32_WINNT=0x0601)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	deps/fmt-9.1.0/include/
-	deps/glfw-3.3.8/include/
+	deps/fmt/include/
+	deps/glfw/include/
 	deps/glad-4.3/include
 	deps/glm-0.9.9.8/
 	deps/stb_image/
 )
 
-target_link_directories(${PROJECT_NAME} PRIVATE
-	deps/fmt-9.1.0/lib/
-	deps/glfw-3.3.8/lib/
-)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE
-	debug fmtd
-	optimized fmt
-	glfw3
+	fmt
+	glfw
 	GulcarNetworking
 )
 
+add_subdirectory(deps/fmt/)
+add_subdirectory(deps/glfw/)
 add_subdirectory(src/Server/)
 add_subdirectory(deps/GulcarNetworking/)

@@ -16,16 +16,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	../../deps/fmt-9.1.0/include/
+	../../deps/fmt/include/
 	../../deps/glm-0.9.9.8/
 )
 
-target_link_directories(${PROJECT_NAME} PRIVATE
-	../../deps/fmt-9.1.0/lib/
-)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE
-	debug fmtd
-	optimized fmt
+	fmt
 	GulcarNetworking
 )

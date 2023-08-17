@@ -1,3 +1,9 @@
 [submodule "deps/GulcarNetworking"]
 	path = deps/GulcarNetworking
 	url = https://github.com/Gulcar/GulcarNetworking
+[submodule "deps/fmt"]
+	path = deps/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "deps/glfw"]
+	path = deps/glfw
+	url = https://github.com/glfw/glfw.git
