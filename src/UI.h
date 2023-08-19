@@ -2,6 +2,7 @@
 
 #include <glm/vec2.hpp>
 #include <string_view>
+#include <string>
 
 namespace UI
 {

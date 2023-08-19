@@ -16,7 +16,7 @@ void LocalPlayer::Update(float deltaTime)
 {
 	glm::vec2 mousePos = Input::GetMouseWorldPos();
 	glm::vec2 dir = mousePos - Position;
-	Rotation = std::atan2f(dir.y, dir.x);
+	Rotation = std::atan2(dir.y, dir.x);
 	Rotation *= 180.0f / 3.14159265359f;
 
 

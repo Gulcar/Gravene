@@ -3,6 +3,7 @@
 #include "SceneManager.h"
 #include "Renderer.h"
 #include "Text.h"
+#include "Input.h"
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <fmt/core.h>
@@ -24,13 +25,16 @@ public:
 	{
 		Renderer::NewFrame();
 
-		Renderer::Draw(m_amongusImage, { std::sinf(glfwGetTime()) * 5.0f, 0 }, { 10, 5 }, glfwGetTime() * 180.0f, { std::sinf(glfwGetTime()), std::cosf(glfwGetTime()), std::tanf(glfwGetTime()) });
+        auto pos = glm::vec2(std::sin(glfwGetTime()) * 5.0f, 0);
+        auto color = glm::vec3(std::sin(glfwGetTime()), std::cos(glfwGetTime()), std::tan(glfwGetTime()));
+		Renderer::Draw(m_amongusImage, pos, { 10, 5 }, glfwGetTime() * 180.0f, color);
 
 		Text::Write("Pozdravljen Svet!!", { 0.0f, 0.0f }, 1.0f, true);
 
 		Text::WriteFps(deltaTime);
 
-		Text::Write(fmt::format("{}, {}", Input::GetMouseWorldPos().x, Input::GetMouseWorldPos().y), { 0.0f, 7.0f }, 0.75f, true);
+        auto mouse = Input::GetMousePos();
+		Text::Write(fmt::format("{}, {}", mouse.x, mouse.y), { 0.0f, 7.0f }, 0.75f, true);
 	}
 	
 	void End() override
