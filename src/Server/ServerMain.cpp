@@ -5,23 +5,23 @@
 
 int main()
 {
-	const uint16_t PORT = 7766;
-	
-	fmt::print("Starting Server ...\n");
-	Utils::EnableTerminalColors();
-	srand(time(nullptr));
+    const uint16_t PORT = 7766;
+    
+    fmt::print("Starting Server ...\n");
+    Utils::EnableTerminalColors();
+    srand(time(nullptr));
 
-	Server server;
-	server.Start(PORT);
+    Server server;
+    server.Start(PORT);
 
-	fmt::print("Server Started!\n");
+    fmt::print("Server Started!\n");
 
-	Utils::FpsLimiter fpsLimiter(14);
+    Utils::FpsLimiter fpsLimiter(14);
 
-	while (true)
-	{
-		fpsLimiter.NewFrame();
+    while (true)
+    {
+        fpsLimiter.NewFrame();
 
-		server.Update();
-	}
+        server.Update();
+    }
 }

@@ -9,53 +9,53 @@
 
 namespace Utils
 {
-	inline void EnableTerminalColors()
-	{
+    inline void EnableTerminalColors()
+    {
 #ifdef WIN32
-		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-		DWORD dwMode = 0;
-		GetConsoleMode(hOut, &dwMode);
-		dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-		SetConsoleMode(hOut, dwMode);
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD dwMode = 0;
+        GetConsoleMode(hOut, &dwMode);
+        dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        SetConsoleMode(hOut, dwMode);
 #endif
-	}
+    }
 
-	class FpsLimiter
-	{
-	public:
-		FpsLimiter(int targetMs)
-		{
-			m_targetDuration = std::chrono::milliseconds(targetMs);
-			m_endFrameTime = std::chrono::steady_clock::now();
-			m_startFrameTime = std::chrono::steady_clock::now();
-		}
+    class FpsLimiter
+    {
+    public:
+        FpsLimiter(int targetMs)
+        {
+            m_targetDuration = std::chrono::milliseconds(targetMs);
+            m_endFrameTime = std::chrono::steady_clock::now();
+            m_startFrameTime = std::chrono::steady_clock::now();
+        }
 
-		void NewFrame()
-		{
-			m_startFrameTime = std::chrono::steady_clock::now();
-			auto deltaTimeChrono = m_startFrameTime - m_endFrameTime;
+        void NewFrame()
+        {
+            m_startFrameTime = std::chrono::steady_clock::now();
+            auto deltaTimeChrono = m_startFrameTime - m_endFrameTime;
 
-			std::this_thread::sleep_for(m_targetDuration - deltaTimeChrono);
+            std::this_thread::sleep_for(m_targetDuration - deltaTimeChrono);
 
-			m_endFrameTime = std::chrono::steady_clock::now();
-		}
+            m_endFrameTime = std::chrono::steady_clock::now();
+        }
 
-	private:
-		std::chrono::milliseconds m_targetDuration;
-		std::chrono::steady_clock::time_point m_startFrameTime;
-		std::chrono::steady_clock::time_point m_endFrameTime;
-	};
+    private:
+        std::chrono::milliseconds m_targetDuration;
+        std::chrono::steady_clock::time_point m_startFrameTime;
+        std::chrono::steady_clock::time_point m_endFrameTime;
+    };
 
-	inline glm::vec2 Lerp(glm::vec2 a, glm::vec2 b, float t)
-	{
-		return ((1.0f - t) * a) + (t * b);
-	}
+    inline glm::vec2 Lerp(glm::vec2 a, glm::vec2 b, float t)
+    {
+        return ((1.0f - t) * a) + (t * b);
+    }
 
-	inline float LerpRotation(float a, float b, float t)
-	{
-		if (a - b > 180.0f) b += 360.0f;
-		else if (b - a > 180.0f) a += 360.0f;
+    inline float LerpRotation(float a, float b, float t)
+    {
+        if (a - b > 180.0f) b += 360.0f;
+        else if (b - a > 180.0f) a += 360.0f;
 
-		return ((1.0f - t) * a) + (t * b);
-	}
+        return ((1.0f - t) * a) + (t * b);
+    }
 }

@@ -12,34 +12,34 @@
 
 int main()
 {
-	fmt::print("pozdravljen svet\n");
-	Utils::EnableTerminalColors();
+    fmt::print("pozdravljen svet\n");
+    Utils::EnableTerminalColors();
 
-	srand(time(nullptr));
+    srand(time(nullptr));
 
-	Renderer::Init();
-	Text::Init("resources/bitmap_font.png", { 1024, 576 }, { 64, 96 });
+    Renderer::Init();
+    Text::Init("resources/bitmap_font.png", { 1024, 576 }, { 64, 96 });
 
-	SceneManager::AssignScene<GameScene>("GameScene");
-	SceneManager::AssignScene<MenuScene>("MenuScene");
-	SceneManager::AssignScene<TestScene>("TestScene");
-	SceneManager::SwitchToScene("MenuScene");
+    SceneManager::AssignScene<GameScene>("GameScene");
+    SceneManager::AssignScene<MenuScene>("MenuScene");
+    SceneManager::AssignScene<TestScene>("TestScene");
+    SceneManager::SwitchToScene("MenuScene");
 
-	//Network::Connect();
-	//Network::SendHello("hello from main");
+    //Network::Connect();
+    //Network::SendHello("hello from main");
 
-	while (!glfwWindowShouldClose(Renderer::GetWindow()))
-	{
-		if (glfwGetKey(Renderer::GetWindow(), GLFW_KEY_ESCAPE))
-			glfwSetWindowShouldClose(Renderer::GetWindow(), true);
+    while (!glfwWindowShouldClose(Renderer::GetWindow()))
+    {
+        if (glfwGetKey(Renderer::GetWindow(), GLFW_KEY_ESCAPE))
+            glfwSetWindowShouldClose(Renderer::GetWindow(), true);
 
-		Input::Poll();
+        Input::Poll();
 
-		Network::Process();
+        Network::Process();
 
-		SceneManager::Update();
-	}
+        SceneManager::Update();
+    }
 
-	Network::Disconnect();
-	Renderer::Destroy();
+    Network::Disconnect();
+    Renderer::Destroy();
 }
