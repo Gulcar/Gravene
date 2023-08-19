@@ -256,7 +256,7 @@ void Server::DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connec
     {
     case NetMessage::Hello:
     {
-        fmt::print("Received: {}\n", (char*)data);
+        fmt::print("Received: {}\n", fmt::string_view((char*)data, bytes));
         break;
     }
 
@@ -278,6 +278,7 @@ void Server::DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connec
         NetPlayerNameT* t = (NetPlayerNameT*)data;
 
         size_t len = strlen(t->name);
+        t->name[19] = '\0';
         conn->PlayerName = t->name;
 
         t->id = (uint16_t)conn->Data.id;

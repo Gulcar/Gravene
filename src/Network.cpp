@@ -178,7 +178,7 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
     {
     case NetMessage::Hello:
     {
-        fmt::print("Received: {}\n", (char*)data);
+        fmt::print("Received: {}\n", fmt::string_view((char*)data, bytes));
         break;
     }
     case NetMessage::ClientId:
@@ -210,6 +210,7 @@ void Network::HandleReceivedMessage(void* data, size_t bytes, uint16_t msgType)
     case NetMessage::PlayerName:
     {
         NetPlayerNameT* t = (NetPlayerNameT*)data;
+        t->name[19] = '\0';
         fmt::print("Received PlayerName(id: {}): {}\n", t->id, t->name);
         s_allPlayerNames.insert({ t->id, std::string(t->name) });
         break;
