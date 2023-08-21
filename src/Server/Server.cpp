@@ -190,12 +190,11 @@ void Server::AddConnection(Net::Connection& netConn)
 
     for (int i = 0; i < m_connections.size() - 1; i++)
     {
-        std::string nameMsg = "  " + m_connections[i].PlayerName;
+        NetPlayerNameT t;
+        t.id = (uint16_t)m_connections[i].Data.id;
+        memcpy(t.name, m_connections[i].PlayerName.data(), m_connections[i].PlayerName.size() + 1);
 
-        uint16_t id = (uint16_t)m_connections[i].Data.id;
-        memcpy(&nameMsg[0], &id, 2);
-
-        m_netServer.SendTo(Net::Buf(nameMsg), (uint16_t)NetMessage::PlayerName, Net::Reliable, netConn);
+        m_netServer.SendTo(Net::Buf(t), (uint16_t)NetMessage::PlayerName, Net::Reliable, netConn);
     }
 
     SendNumOfPlayers();
@@ -277,7 +276,6 @@ void Server::DataReceive(void* data, size_t bytes, uint16_t msgType, Net::Connec
     {
         NetPlayerNameT* t = (NetPlayerNameT*)data;
 
-        size_t len = strlen(t->name);
         t->name[19] = '\0';
         conn->PlayerName = t->name;
 
